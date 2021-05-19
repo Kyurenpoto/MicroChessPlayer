@@ -9,7 +9,6 @@ from pydantic import BaseModel
 
 class PlayerAIInfo(BaseModel):
     url: str
-    port: int
 
 
 class PlayerTrajactoryRequest(BaseModel):
