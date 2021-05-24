@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import NamedTuple
 
-from infra.apiclient import APIClient
+from infra.postclient import PostClient
 
 
 class RequestedFENStatus(NamedTuple):
@@ -15,6 +15,6 @@ class RequestedFENStatus(NamedTuple):
 
     @classmethod
     async def from_url_with_FENs(cls, url: str, fens: list[str]) -> RequestedFENStatus:
-        response = await APIClient(url).post({"fens": fens})
+        response = await PostClient(url).post({"fens": fens})
 
         return RequestedFENStatus(response["statuses"], response["legal_moves"])
