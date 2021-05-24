@@ -2,23 +2,12 @@
 
 # SPDX-License-Identifier: GPL-3.0-only
 
-
-from typing import List
+from __future__ import annotations
 
 from infra.apiclient import APIClient
 
 
-class RequestedNextFEN:
-    __slots__ = ["__url", "__fens", "__sans"]
-
-    __url: str
-    __fens: List[str]
-    __sans: List[str]
-
-    def __init__(self, url: str, fens: List[str], sans: List[str]):
-        self.__url = url
-        self.__fens = fens
-        self.__sans = sans
-
-    async def value(self) -> List[str]:
-        return (await APIClient(self.__url).post({"fens": self.__fens, "sans": self.__sans}))["next_fens"]
+class RequestedNextFEN(list[str]):
+    @classmethod
+    async def from_url_with_FENs_SANs(cls, url: str, fens: list[str], sans: list[str]) -> RequestedNextFEN:
+        return (await APIClient(url).post({"fens": fens, "sans": sans}))["next_fens"]

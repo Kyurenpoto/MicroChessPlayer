@@ -2,7 +2,7 @@
 
 # SPDX-License-Identifier: GPL-3.0-only
 
-from typing import List, Union
+from typing import Union
 
 from pydantic import BaseModel
 
@@ -12,15 +12,15 @@ class PlayerAIInfo(BaseModel):
 
 
 class PlayerTrajactoryRequest(BaseModel):
-    fens: List[str]
+    fens: list[str]
     white: PlayerAIInfo
     black: PlayerAIInfo
 
 
 class PlayerTrajactoryResponse(BaseModel):
-    fens: List[List[str]]
-    sans: List[List[str]]
-    results: List[int]
+    fens: list[list[str]]
+    sans: list[list[str]]
+    results: list[int]
 
 
 class PlayerGameRequest(BaseModel):
@@ -29,8 +29,8 @@ class PlayerGameRequest(BaseModel):
 
 
 class PlayerGameResponse(BaseModel):
-    fens: List[str]
-    sans: List[str]
+    fens: list[str]
+    sans: list[str]
     result: int
 
 
@@ -56,5 +56,5 @@ class PlayerErrorResponse(BaseModel):
     message: str
     location: str
     param: str
-    value: Union[List[str], PlayerAIInfo, int]
+    value: Union[list[str], PlayerAIInfo, int]
     error: str
