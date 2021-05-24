@@ -13,18 +13,13 @@ FIRST_SAN = "h5h6"
 
 
 def test_move() -> None:
-    trace: Trace = Trace.from_fens([STARTING_FEN])
-    fens, sans, results = trace.move([[FIRST_FEN]], [[FIRST_SAN]], [[0]]).value()
-
-    assert fens == [[STARTING_FEN, FIRST_FEN]]
-    assert sans == [[FIRST_SAN]]
-    assert results == [[0]]
+    assert Trace.from_fens([STARTING_FEN]).moved(Trace([[FIRST_FEN]], [[FIRST_SAN]], [[0]])) == Trace(
+        [[STARTING_FEN, FIRST_FEN]], [[FIRST_SAN]], [[0]]
+    )
 
 
 def test_index() -> None:
-    fens, sans, results = (
-        IndexedTrace(Trace([[STARTING_FEN], [FIRST_FEN]], [[FIRST_SAN]], [[0], [0]]), [0]).value().value()
-    )
+    fens, sans, results = IndexedTrace(Trace([[STARTING_FEN], [FIRST_FEN]], [[FIRST_SAN]], [[0], [0]]), [0]).value()
 
     assert fens == [[STARTING_FEN]]
     assert sans == [[FIRST_SAN]]
@@ -33,9 +28,7 @@ def test_index() -> None:
 
 @pytest.mark.parametrize("color, fen, sanlist", [("w", STARTING_FEN, [FIRST_SAN]), ("b", FIRST_FEN, [])])
 def test_color(color: str, fen: str, sanlist: List[str]) -> None:
-    fens, sans, results = (
-        ColoredTrace(Trace([[STARTING_FEN], [FIRST_FEN]], [[FIRST_SAN]], [[0], [0]]), color).value().value()
-    )
+    fens, sans, results = ColoredTrace(Trace([[STARTING_FEN], [FIRST_FEN]], [[FIRST_SAN]], [[0], [0]]), color).value()
 
     assert fens == [[fen]]
     assert sans == [sanlist]
@@ -46,8 +39,8 @@ def test_split() -> None:
     white, black = SplitedTrace(
         Trace([[STARTING_FEN, FIRST_FEN, STARTING_FEN]], [[FIRST_SAN, FIRST_SAN]], [[0, 0, 0]])
     ).value()
-    fens_white, sans_white, results_white = white.value()
-    fens_black, sans_black, results_black = black.value()
+    fens_white, sans_white, results_white = white
+    fens_black, sans_black, results_black = black
 
     assert fens_white == [[STARTING_FEN, STARTING_FEN]]
     assert sans_white == [[FIRST_SAN]]
