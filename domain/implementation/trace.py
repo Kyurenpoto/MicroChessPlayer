@@ -6,7 +6,7 @@ from __future__ import annotations, unicode_literals
 
 from typing import Callable, Iterable, List, NamedTuple, Tuple
 
-from .enumerable import Enumerable
+from .enumerable import Enumerable, Indexable, Mappable
 from .movement import GeneratedMovementBase
 from .status import GeneratedStatusBase
 
@@ -19,7 +19,7 @@ class Trace(NamedTuple):
     @classmethod
     def from_fens(cls, fens: List[str]) -> Trace:
         return Trace(
-            Enumerable(fens).wrapped(),
+            Mappable(fens).wrapped(),
             Enumerable.filled([], len(fens)),
             Enumerable.filled([], len(fens)),
         )
@@ -35,16 +35,16 @@ class Trace(NamedTuple):
         return Trace(*map(mapper, self))
 
     def inner_mapped(self, mapper: Callable) -> Trace:
-        return self.mapped(lambda y: Enumerable(y).mapped(mapper))
+        return self.mapped(lambda y: Mappable(y).mapped(mapper))
 
     def indexed(self, indice: Iterable[int]) -> Trace:
-        return self.mapped(lambda x: Enumerable(x).indexed(indice))
+        return self.mapped(lambda x: Indexable(x).indexed(indice))
 
     def inner_odd_indexed(self) -> Trace:
-        return self.inner_mapped(lambda x: Enumerable(x).odd_indexed())
+        return self.inner_mapped(lambda x: Indexable(x).odd_indexed())
 
     def inner_even_indexed(self) -> Trace:
-        return self.inner_mapped(lambda x: Enumerable(x).even_indexed())
+        return self.inner_mapped(lambda x: Indexable(x).even_indexed())
 
     def to_color_indice(self, color: str) -> Iterable[int]:
         return Enumerable(self.fens).to_conditional_indice(lambda x: x[0].split(" ")[1] == color)
@@ -56,7 +56,7 @@ class Trace(NamedTuple):
         return Trace(*map(mapper, zip(self, other)))
 
     def moved(self, next_trace: Trace) -> Trace:
-        return self.mapped_with(next_trace, lambda z: Enumerable.mapped_with_others(z, lambda x, y: x + y))
+        return self.mapped_with(next_trace, lambda z: Mappable.mapped_with_others(z, lambda x, y: x + y))
 
     def concatenated(self, other: Trace) -> Trace:
         return self.mapped_with(other, lambda z: z[0] + z[1])
@@ -103,15 +103,10 @@ class UnionedTrace:
     def value(self) -> Trace:
         fens1, sans1, results1 = self.__trace1
         fens2, sans2, results2 = self.__trace2
-        Enumerable.disjoint_unioned([], self.__length, [(self.__next_indice1, fens1), (self.__next_indice2, fens2)])
         return Trace(
-            Enumerable.disjoint_unioned(
-                [], self.__length, [(self.__next_indice1, fens1), (self.__next_indice2, fens2)]
-            ),
-            Enumerable.disjoint_unioned(
-                [], self.__length, [(self.__next_indice1, sans1), (self.__next_indice2, sans2)]
-            ),
-            Enumerable.disjoint_unioned([], self.__length, [(self.__indice1, results1), (self.__indice2, results2)]),
+            Mappable.disjoint_unioned([], self.__length, [(self.__next_indice1, fens1), (self.__next_indice2, fens2)]),
+            Mappable.disjoint_unioned([], self.__length, [(self.__next_indice1, sans1), (self.__next_indice2, sans2)]),
+            Mappable.disjoint_unioned([], self.__length, [(self.__indice1, results1), (self.__indice2, results2)]),
         )
 
 
@@ -126,7 +121,7 @@ class NextIndice:
         self.__results = results
 
     def value(self) -> List[int]:
-        return Enumerable(self.__indice).indexed(filter(lambda x: self.__results[x] == 0, range(len(self.__results))))
+        return Indexable(self.__indice).indexed(filter(lambda x: self.__results[x] == 0, range(len(self.__results))))
 
 
 class NextTrace:
@@ -151,10 +146,10 @@ class NextTrace:
 
         results, legal_moves = await self.__status.value(self.__fens)
         next_indice: List[int] = NextIndice(list(range(len(self.__fens))), results).value()
-        next_fens, next_sans = await self.__movement.value(Enumerable(self.__fens).indexed(next_indice), legal_moves)
+        next_fens, next_sans = await self.__movement.value(Indexable(self.__fens).indexed(next_indice), legal_moves)
 
         return (
-            Trace(Enumerable(next_fens).wrapped(), Enumerable(next_sans).wrapped(), Enumerable(results).wrapped()),
+            Trace(Mappable(next_fens).wrapped(), Mappable(next_sans).wrapped(), Mappable(results).wrapped()),
             next_indice,
         )
 
@@ -231,8 +226,8 @@ class ProducedTrace:
         trace: Trace = Trace.from_fens(self.__fens)
         indice_white: List[int] = list(trace.to_color_indice("w"))
         indice_black: List[int] = list(trace.to_color_indice("b"))
-        fens_white: List[str] = Enumerable(self.__fens).indexed(indice_white)
-        fens_black: List[str] = Enumerable(self.__fens).indexed(indice_black)
+        fens_white: List[str] = Indexable(self.__fens).indexed(indice_white)
+        fens_black: List[str] = Indexable(self.__fens).indexed(indice_black)
 
         for _ in range(self.__step):
             if indice_white == [] and indice_black == []:
@@ -259,7 +254,7 @@ class ProducedTrace:
 
             indice_white = next_indice_black
             indice_black = next_indice_white
-            fens_white = Enumerable(next_trace_black.fens).mapped(lambda x: x[0])
-            fens_black = Enumerable(next_trace_white.fens).mapped(lambda x: x[0])
+            fens_white = Mappable(next_trace_black.fens).mapped(lambda x: x[0])
+            fens_black = Mappable(next_trace_white.fens).mapped(lambda x: x[0])
 
         return trace
