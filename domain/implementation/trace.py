@@ -24,36 +24,27 @@ class Trace(NamedTuple):
             Enumerable.filled([], len(fens)),
         )
 
+
+class MappableTrace(Trace):
+    @classmethod
+    def from_fens(cls, fens: List[str]) -> MappableTrace:
+        return MappableTrace._make(Trace.from_fens(fens))
+
     @classmethod
     def cross_concatenated(cls, traces: list[tuple[Trace, Trace]]) -> tuple[Trace, Trace]:
         return (
-            traces[0][0].concatenated(traces[1][1]),
-            traces[1][0].concatenated(traces[0][1]),
+            MappableTrace._make(traces[0][0]).concatenated(traces[1][1]),
+            MappableTrace._make(traces[1][0]).concatenated(traces[0][1]),
         )
 
-    def mapped(self, mapper: Callable) -> Trace:
-        return Trace(*map(mapper, self))
+    def mapped(self, mapper: Callable) -> MappableTrace:
+        return MappableTrace(*map(mapper, self))
 
-    def inner_mapped(self, mapper: Callable) -> Trace:
+    def inner_mapped(self, mapper: Callable) -> MappableTrace:
         return self.mapped(lambda y: Mappable(y).mapped(mapper))
 
-    def indexed(self, indice: Iterable[int]) -> Trace:
-        return self.mapped(lambda x: Indexable(x).indexed(indice))
-
-    def inner_odd_indexed(self) -> Trace:
-        return self.inner_mapped(lambda x: Indexable(x).odd_indexed())
-
-    def inner_even_indexed(self) -> Trace:
-        return self.inner_mapped(lambda x: Indexable(x).even_indexed())
-
-    def to_color_indice(self, color: str) -> Iterable[int]:
-        return Enumerable(self.fens).to_conditional_indice(lambda x: x[0].split(" ")[1] == color)
-
-    def colored(self, color: str) -> Trace:
-        return self.indexed(Enumerable(self.fens).to_conditional_indice(lambda x: x[0].split(" ")[1] == color))
-
-    def mapped_with(self, other: Trace, mapper: Callable) -> Trace:
-        return Trace(*map(mapper, zip(self, other)))
+    def mapped_with(self, other: Trace, mapper: Callable) -> MappableTrace:
+        return MappableTrace(*map(mapper, zip(self, other)))
 
     def moved(self, next_trace: Trace) -> Trace:
         return self.mapped_with(next_trace, lambda z: Mappable.mapped_with_others(z, lambda x, y: x + y))
@@ -61,14 +52,43 @@ class Trace(NamedTuple):
     def concatenated(self, other: Trace) -> Trace:
         return self.mapped_with(other, lambda z: z[0] + z[1])
 
-    def color_splited(self) -> tuple[Trace, Trace]:
-        return self.colored("w"), self.colored("b")
+
+class IndexableTrace(Trace):
+    @classmethod
+    def from_fens(cls, fens: List[str]) -> IndexableTrace:
+        return IndexableTrace._make(Trace.from_fens(fens))
+
+    def indexed(self, indice: Iterable[int]) -> IndexableTrace:
+        return IndexableTrace._make(MappableTrace._make(self).mapped(lambda x: Indexable(x).indexed(indice)))
+
+    def inner_odd_indexed(self) -> IndexableTrace:
+        return IndexableTrace._make(MappableTrace._make(self).inner_mapped(lambda x: Indexable(x).odd_indexed()))
+
+    def inner_even_indexed(self) -> IndexableTrace:
+        return IndexableTrace._make(MappableTrace._make(self).inner_mapped(lambda x: Indexable(x).even_indexed()))
+
+    def to_color_indice(self, color: str) -> Iterable[int]:
+        return Enumerable(self.fens).to_conditional_indice(lambda x: x[0].split(" ")[1] == color)
+
+    def colored(self, color: str) -> IndexableTrace:
+        return self.indexed(self.to_color_indice(color))
+
+
+class SplitableTrace(Trace):
+    @classmethod
+    def from_fens(cls, fens: List[str]) -> SplitableTrace:
+        return SplitableTrace._make(Trace.from_fens(fens))
+
+    def color_splited(self) -> tuple[SplitableTrace, SplitableTrace]:
+        return SplitableTrace._make(IndexableTrace._make(self).colored("w")), SplitableTrace._make(
+            IndexableTrace._make(self).colored("b")
+        )
 
     def inner_parity_splited(self) -> tuple[Trace, Trace]:
-        return self.inner_even_indexed(), self.inner_odd_indexed()
+        return IndexableTrace._make(self).inner_even_indexed(), IndexableTrace._make(self).inner_odd_indexed()
 
     def splited_with_color_turn(self) -> tuple[Trace, Trace]:
-        return Trace.cross_concatenated(list(map(lambda x: x.inner_parity_splited(), self.color_splited())))
+        return MappableTrace.cross_concatenated(list(map(lambda x: x.inner_parity_splited(), self.color_splited())))
 
 
 class UnionedTrace:
@@ -223,7 +243,7 @@ class ProducedTrace:
 
     async def value(self) -> Trace:
         length: int = len(self.__fens)
-        trace: Trace = Trace.from_fens(self.__fens)
+        trace: IndexableTrace = IndexableTrace.from_fens(self.__fens)
         indice_white: List[int] = list(trace.to_color_indice("w"))
         indice_black: List[int] = list(trace.to_color_indice("b"))
         fens_white: List[str] = Indexable(self.__fens).indexed(indice_white)
