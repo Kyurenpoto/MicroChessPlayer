@@ -32,10 +32,6 @@ class Enumerable(list):
 
 class Mappable(list):
     @classmethod
-    def mapped_with_others(cls, target: Iterable[Iterable], mapper: Callable) -> Mappable:
-        return Mappable(zip(*target)).mapped(lambda x: mapper(*x))
-
-    @classmethod
     def concatenated(cls, target: Iterable[Iterable]) -> Mappable:
         return Mappable(chain(*target))
 
@@ -44,8 +40,12 @@ class Mappable(list):
         cls, value, length: int, indice_with_disjoint: Iterable[tuple[Iterable[int], Iterable]]
     ) -> Mappable:
         return Mappable(Enumerable.filled(value, length)).replaced(
-            dict(Mappable.concatenated(Mappable(indice_with_disjoint).mapped(lambda x, y: zip(x, y))))
+            dict(Mappable.concatenated(Mappable(indice_with_disjoint).mapped(lambda x: zip(*x))))
         )
+
+    @classmethod
+    def mapped_with_others(cls, target: Iterable[Iterable], mapper: Callable) -> Mappable:
+        return Mappable(zip(*target)).mapped(lambda x: mapper(*x))
 
     def mapped(self, mapper: Callable) -> Mappable:
         return Mappable(map(mapper, self))
@@ -61,7 +61,7 @@ class Mappable(list):
 
 class Indexable(list):
     def indexed(self, indice: Iterable[int]) -> Indexable:
-        return Indexable(Mappable(filter(lambda x: x < len(self), indice)).mapped(lambda i: self[i]))
+        return Indexable(Mappable(filter(lambda x: 0 <= x < len(self), indice)).mapped(lambda i: self[i]))
 
     def odd_indexed(self) -> Indexable:
         return self.indexed(Enumerable(self).to_odd_indice())
