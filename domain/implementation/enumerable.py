@@ -36,11 +36,15 @@ class Mappable(list):
         return Mappable(zip(*target)).mapped(lambda x: mapper(*x))
 
     @classmethod
+    def concatenated(cls, target: Iterable[Iterable]) -> Mappable:
+        return Mappable(chain(*target))
+
+    @classmethod
     def disjoint_unioned(
         cls, value, length: int, indice_with_disjoint: Iterable[tuple[Iterable[int], Iterable]]
     ) -> Mappable:
         return Mappable(Enumerable.filled(value, length)).replaced(
-            dict(chain(*[zip(indice, disjoint) for indice, disjoint in indice_with_disjoint]))
+            dict(Mappable.concatenated(Mappable(indice_with_disjoint).mapped(lambda x, y: zip(x, y))))
         )
 
     def mapped(self, mapper: Callable) -> Mappable:
