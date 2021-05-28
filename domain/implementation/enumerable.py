@@ -68,6 +68,3 @@ class Indexable(list):
 
     def even_indexed(self) -> Indexable:
         return self.indexed(Enumerable(self).to_even_indice())
-
-    def conditioned(self, condition: Callable) -> Indexable:
-        return self.indexed(Enumerable(self).to_conditional_indice(condition))
