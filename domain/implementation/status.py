@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 
 from abc import ABCMeta, abstractmethod
+from dataclasses import dataclass
 from enum import Enum, auto
 
 from .enumerable import Mappable
@@ -38,9 +39,9 @@ class Status(str, IStatus):
         return Mappable(statuses).mapped(lambda x: MicroBoardStatus(x).to_result()), legal_moves
 
 
-class Fake(IStatus):
+class FakeStatus(IStatus):
     async def status(self, fens: list[str]) -> tuple[list[float], list[list[str]]]:
-        return [0], [
+        return [0] * len(fens), [
             [
                 "e4e5",
                 "e4e6",
@@ -54,4 +55,30 @@ class Fake(IStatus):
                 "h4g5",
                 "h5h6",
             ]
-        ]
+        ] * len(fens)
+
+
+@dataclass
+class FakeFinitePrefixStatus(IStatus):
+    rest_prefix: int = 0
+
+    async def status(self, fens: list[str]) -> tuple[list[float], list[list[str]]]:
+        if self.rest_prefix != 0:
+            self.rest_prefix -= 1
+            return await FakeStatus().status(fens)
+
+        return self.after_prefix(fens)
+
+    @abstractmethod
+    def after_prefix(self, fens: list[str]) -> tuple[list[float], list[list[str]]]:
+        pass
+
+
+class FakeCheckmateStatus(FakeFinitePrefixStatus):
+    def after_prefix(self, fens: list[str]) -> tuple[list[float], list[list[str]]]:
+        return [1] * len(fens), [[]] * len(fens)
+
+
+class FakeStalemateStatus(FakeFinitePrefixStatus):
+    def after_prefix(self, fens: list[str]) -> tuple[list[float], list[list[str]]]:
+        return [0.5] * len(fens), [[]] * len(fens)

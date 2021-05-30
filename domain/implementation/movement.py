@@ -26,6 +26,35 @@ class Movement(NamedTuple):
         return next_fens, next_sans
 
 
-class Fake(IMovement):
+class FEN:
+    @classmethod
+    def starting(cls) -> str:
+        return "4knbr/4p3/8/7P/4RBNK/8/8/8 w Kk - 0 1"
+
+    @classmethod
+    def first(cls) -> str:
+        return "4knbr/4p3/7P/8/4RBNK/8/8/8 b Kk - 0 1"
+
+    @classmethod
+    def white_end(cls) -> str:
+        return "8/8/8/8/8/8/8/8 w Kk - 0 1"
+
+    @classmethod
+    def black_end(cls) -> str:
+        return "8/8/8/8/8/8/8/8 b Kk - 0 1"
+
+
+class SAN:
+    @classmethod
+    def first(cls) -> str:
+        return "h5h6"
+
+
+class FakeWhiteMovement(IMovement):
     async def movement(self, fens: list[str], legal_moves: list[list[str]]) -> tuple[list[str], list[str]]:
-        return ["4knbr/4p3/7P/8/4RBNK/8/8/8 b Kk - 0 1"], ["h5h6"]
+        return [FEN.first()] * len(fens), [SAN.first()] * len(fens)
+
+
+class FakeBlackMovement(IMovement):
+    async def movement(self, fens: list[str], legal_moves: list[list[str]]) -> tuple[list[str], list[str]]:
+        return [FEN.starting()] * len(fens), [SAN.first()] * len(fens)

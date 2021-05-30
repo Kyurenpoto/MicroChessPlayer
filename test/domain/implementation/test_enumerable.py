@@ -35,8 +35,22 @@ class TestMappable:
     def test_replaced(self) -> None:
         assert Mappable([0, 1, 2, 3, 4]).replaced({2: 6, 1: 5}) == Mappable([0, 5, 6, 3, 4])
 
+    def test_replaced_with_disjoint(self) -> None:
+        assert Mappable(Enumerable.filled(0, 5)).replaced_with_disjoint(
+            [([1, 2], [1, 2]), ([3, 4], [3, 4])]
+        ) == Mappable([0, 1, 2, 3, 4])
+
     def test_concatenated(self) -> None:
         assert Mappable.concatenated([[2, 3], [0, 1]]) == Mappable([2, 3, 0, 1])
+
+    def test_indice_to_disjoint(self) -> None:
+        assert list(Mappable.indice_to_disjoint([([1, 2], lambda x: x), ([3, 4], lambda x: x)])) == [
+            ([1, 2], [1, 2]),
+            ([3, 4], [3, 4]),
+        ]
+
+    def test_disjoint_to_replace_map(self) -> None:
+        assert Mappable.disjoint_to_replace_map([([1, 2], [1, 2]), ([3, 4], [3, 4])]) == {1: 1, 2: 2, 3: 3, 4: 4}
 
     def test_disjoint_unioned(self) -> None:
         assert Mappable.disjoint_unioned(0, 5, [([1, 2], [1, 2]), ([3, 4], [3, 4])]) == Mappable([0, 1, 2, 3, 4])
@@ -54,3 +68,6 @@ class TestIndexable:
 
     def test_even_indexed(self) -> None:
         assert Indexable([0, 1, 2, 3, 4]).even_indexed() == Indexable([0, 2, 4])
+
+    def test_conditional_indexed(self) -> None:
+        assert Indexable([0, 1, 2, 3, 4]).conditional_indexed(lambda x: x % 2 == 1) == Indexable([1, 3])
