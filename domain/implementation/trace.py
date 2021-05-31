@@ -2,8 +2,9 @@
 
 # SPDX-License-Identifier: GPL-3.0-only
 
-from __future__ import annotations, unicode_literals
+from __future__ import annotations
 
+from abc import ABCMeta, abstractmethod
 from typing import Callable, Iterable, NamedTuple
 
 from .enumerable import Enumerable, Indexable, Mappable
@@ -276,21 +277,48 @@ class OneStepProduct(NamedTuple):
         return SplitableTrace._make(self.trace.end_corrected()).splited_with_color_turn()
 
 
+class ITraceProducable(metaclass=ABCMeta):
+    @abstractmethod
+    async def n_step_produced(
+        self, product: OneStepProduct, status: IStatus, movement_white: IMovement, movement_black: IMovement
+    ) -> OneStepProduct:
+        pass
+
+
+class FiniteTraceProducable(int, ITraceProducable):
+    async def n_step_produced(
+        self, product: OneStepProduct, status: IStatus, movement_white: IMovement, movement_black: IMovement
+    ) -> OneStepProduct:
+        for _ in range(self):
+            if product.empty():
+                break
+
+            product = await product.one_step_produced(status, movement_white, movement_black)
+
+        return product
+
+
+class InfiniteTraceProducable(ITraceProducable):
+    async def n_step_produced(
+        self, product: OneStepProduct, status: IStatus, movement_white: IMovement, movement_black: IMovement
+    ) -> OneStepProduct:
+        while not product.empty():
+            product = await product.one_step_produced(status, movement_white, movement_black)
+
+        return product
+
+
 class ProducableTrace(NamedTuple):
-    step: int
     fens: list[str]
     status: IStatus
     movement_white: IMovement
     movement_black: IMovement
+    producable: ITraceProducable
 
     async def produced(self) -> tuple[Trace, Trace]:
-        product: OneStepProduct = OneStepProduct.from_FENs(self.fens)
-
-        for _ in range(self.step):
-            if product.empty():
-                break
-
-            product = await product.one_step_produced(self.status, self.movement_white, self.movement_black)
+        product: OneStepProduct = await self.producable.n_step_produced(
+            OneStepProduct.from_FENs(self.fens), self.status, self.movement_white, self.movement_black
+        )
 
         if not product.empty():
             product = await product.none_step_produced(self.status)

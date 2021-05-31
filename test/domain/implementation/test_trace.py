@@ -2,11 +2,17 @@
 
 # SPDX-License-Identifier: GPL-3.0-only
 
+from typing import NamedTuple
+
 import pytest
+from domain.implementation.enumerable import Mappable
 from domain.implementation.movement import FEN, SAN, FakeBlackMovement, FakeWhiteMovement, IMovement
 from domain.implementation.status import FakeCheckmateStatus, FakeStalemateStatus, FakeStatus, IStatus
 from domain.implementation.trace import (
+    FiniteTraceProducable,
     IndexableTrace,
+    InfiniteTraceProducable,
+    ITraceProducable,
     MappableTrace,
     MovableTrace,
     OneStepTrace,
@@ -223,9 +229,28 @@ class TestMovableTrace:
 
 
 class TestProducableTrace:
+    class GeneratableParam(NamedTuple):
+        rest_prefix: int
+        common_white: Trace
+        common_black: Trace
+        additional_results: list[list[list[float]]]
+
+        def generated(self) -> list[tuple]:
+            return [
+                (
+                    [FEN.starting(), FEN.first()],
+                    status_type(self.rest_prefix),
+                    Trace(self.common_white.fens, self.common_white.sans, self.additional_results[i]),
+                    Trace(self.common_black.fens, self.common_black.sans, self.additional_results[i]),
+                    producable,
+                )
+                for status_type, i in [(FakeCheckmateStatus, 0), (FakeStalemateStatus, 1)]
+                for producable in [FiniteTraceProducable(3), InfiniteTraceProducable()]
+            ]
+
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        "fens, status, white, black",
+        "fens, status, white, black, producable",
         [
             (
                 [FEN.starting(), FEN.first()],
@@ -240,91 +265,57 @@ class TestProducableTrace:
                     [[SAN.first()], [SAN.first()]],
                     [[0, 0], [0, 0]],
                 ),
+                FiniteTraceProducable(3),
             ),
-            (
-                [FEN.starting(), FEN.first()],
-                FakeCheckmateStatus(),
-                Trace([[FEN.starting()]], [[]], [[1]]),
-                Trace([[FEN.first()]], [[]], [[1]]),
-            ),
-            (
-                [FEN.starting(), FEN.first()],
-                FakeStalemateStatus(),
-                Trace([[FEN.starting()]], [[]], [[0.5]]),
-                Trace([[FEN.first()]], [[]], [[0.5]]),
-            ),
-            (
-                [FEN.starting(), FEN.first()],
-                FakeCheckmateStatus(2),
-                Trace([[FEN.starting(), FEN.white_end()], [FEN.starting()]], [[SAN.first()], []], [[0, 1], [0]]),
-                Trace([[FEN.first(), FEN.black_end()], [FEN.first()]], [[SAN.first()], []], [[0, 1], [0]]),
-            ),
-            (
-                [FEN.starting(), FEN.first()],
-                FakeStalemateStatus(2),
-                Trace([[FEN.starting(), FEN.white_end()], [FEN.starting()]], [[SAN.first()], []], [[0, 0.5], [0.5]]),
-                Trace([[FEN.first(), FEN.black_end()], [FEN.first()]], [[SAN.first()], []], [[0, 0.5], [0.5]]),
-            ),
-            (
-                [FEN.starting(), FEN.first()],
-                FakeCheckmateStatus(4),
-                Trace(
-                    [[FEN.starting(), FEN.starting()], [FEN.starting(), FEN.white_end()]],
-                    [[SAN.first()], [SAN.first()]],
-                    [[0, 0], [0, 1]],
-                ),
-                Trace(
-                    [[FEN.first(), FEN.first()], [FEN.first(), FEN.black_end()]],
-                    [[SAN.first()], [SAN.first()]],
-                    [[0, 0], [0, 1]],
-                ),
-            ),
-            (
-                [FEN.starting(), FEN.first()],
-                FakeStalemateStatus(4),
-                Trace(
-                    [[FEN.starting(), FEN.starting()], [FEN.starting(), FEN.white_end()]],
-                    [[SAN.first()], [SAN.first()]],
-                    [[0, 0.5], [0, 0.5]],
-                ),
-                Trace(
-                    [[FEN.first(), FEN.first()], [FEN.first(), FEN.black_end()]],
-                    [[SAN.first()], [SAN.first()]],
-                    [[0, 0.5], [0, 0.5]],
-                ),
-            ),
-            (
-                [FEN.starting(), FEN.first()],
-                FakeCheckmateStatus(6),
-                Trace(
-                    [[FEN.starting(), FEN.starting(), FEN.white_end()], [FEN.starting(), FEN.starting()]],
-                    [[SAN.first(), SAN.first()], [SAN.first()]],
-                    [[0, 0, 1], [0, 0]],
-                ),
-                Trace(
-                    [[FEN.first(), FEN.first(), FEN.black_end()], [FEN.first(), FEN.first()]],
-                    [[SAN.first(), SAN.first()], [SAN.first()]],
-                    [[0, 0, 1], [0, 0]],
-                ),
-            ),
-            (
-                [FEN.starting(), FEN.first()],
-                FakeStalemateStatus(6),
-                Trace(
-                    [[FEN.starting(), FEN.starting(), FEN.white_end()], [FEN.starting(), FEN.starting()]],
-                    [[SAN.first(), SAN.first()], [SAN.first()]],
-                    [[0, 0, 0.5], [0, 0.5]],
-                ),
-                Trace(
-                    [[FEN.first(), FEN.first(), FEN.black_end()], [FEN.first(), FEN.first()]],
-                    [[SAN.first(), SAN.first()], [SAN.first()]],
-                    [[0, 0, 0.5], [0, 0.5]],
-                ),
-            ),
-        ],
+        ]
+        + Mappable.concatenated(
+            Mappable(
+                [
+                    GeneratableParam(
+                        0, Trace([[FEN.starting()]], [[]], []), Trace([[FEN.first()]], [[]], []), [[[1]], [[0.5]]]
+                    ),
+                    GeneratableParam(
+                        2,
+                        Trace([[FEN.starting(), FEN.white_end()], [FEN.starting()]], [[SAN.first()], []], []),
+                        Trace([[FEN.first(), FEN.black_end()], [FEN.first()]], [[SAN.first()], []], []),
+                        [[[0, 1], [0]], [[0, 0.5], [0.5]]],
+                    ),
+                    GeneratableParam(
+                        4,
+                        Trace(
+                            [[FEN.starting(), FEN.starting()], [FEN.starting(), FEN.white_end()]],
+                            [[SAN.first()], [SAN.first()]],
+                            [],
+                        ),
+                        Trace(
+                            [[FEN.first(), FEN.first()], [FEN.first(), FEN.black_end()]],
+                            [[SAN.first()], [SAN.first()]],
+                            [],
+                        ),
+                        [[[0, 0], [0, 1]], [[0, 0.5], [0, 0.5]]],
+                    ),
+                    GeneratableParam(
+                        6,
+                        Trace(
+                            [[FEN.starting(), FEN.starting(), FEN.white_end()], [FEN.starting(), FEN.starting()]],
+                            [[SAN.first(), SAN.first()], [SAN.first()]],
+                            [],
+                        ),
+                        Trace(
+                            [[FEN.first(), FEN.first(), FEN.black_end()], [FEN.first(), FEN.first()]],
+                            [[SAN.first(), SAN.first()], [SAN.first()]],
+                            [],
+                        ),
+                        [[[0, 0, 1], [0, 0]], [[0, 0, 0.5], [0, 0.5]]],
+                    ),
+                ]
+            ).mapped(lambda x: x.generated()),
+        ),
     )
-    async def test_produced(self, fens: list[str], status: IStatus, white: Trace, black: Trace) -> None:
-        assert await ProducableTrace(3, fens, status, FakeWhiteMovement(), FakeBlackMovement()).produced() == (
+    async def test_produced(
+        self, fens: list[str], status: IStatus, white: Trace, black: Trace, producable: ITraceProducable
+    ) -> None:
+        assert await ProducableTrace(fens, status, FakeWhiteMovement(), FakeBlackMovement(), producable).produced() == (
             white,
             black,
         )
