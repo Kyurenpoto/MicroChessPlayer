@@ -9,11 +9,11 @@ from domain.implementation.enumerable import Mappable
 from domain.implementation.movement import FEN, SAN, FakeBlackMovement, FakeWhiteMovement, IMovement
 from domain.implementation.status import FakeCheckmateStatus, FakeStalemateStatus, FakeStatus, IStatus
 from domain.implementation.trace import (
+    ColoredTrace,
+    CorrectableTrace,
     FiniteTraceProducable,
-    IndexableTrace,
     InfiniteTraceProducable,
     ITraceProducable,
-    MappableTrace,
     MovableTrace,
     OneStepTrace,
     ProducableTrace,
@@ -22,48 +22,24 @@ from domain.implementation.trace import (
 )
 
 
-class TestTrace:
-    @pytest.mark.parametrize(
-        "color, indice",
-        [
-            ("w", [0]),
-            ("b", [1]),
-        ],
-    )
-    def test_to_color_indice(self, color: str, indice: list[int]) -> None:
-        assert Trace.from_FENs([FEN.starting(), FEN.first()]).to_color_indice(color) == indice
-
-    def test_to_not_empty_indice(self) -> None:
-        assert Trace([[], [FEN.starting()], []], [[], [], []], [[], [], []]).to_not_empty_indice() == [1]
-
-    def test_SAN_normalized(self) -> None:
-        assert Trace(
-            [[FEN.starting(), FEN.starting()], [FEN.starting(), FEN.starting()]],
-            [[SAN.first(), SAN.first()], [SAN.first()]],
-            [[0, 0], [0, 0]],
-        ).SAN_normalized() == Trace(
-            [[FEN.starting(), FEN.starting()], [FEN.starting(), FEN.starting()]],
-            [[SAN.first()], [SAN.first()]],
-            [[0, 0], [0, 0]],
-        )
-
+class TestCorrectableTrace:
     @pytest.mark.parametrize(
         "trace, corrected",
         [
             (
-                Trace(
+                CorrectableTrace(
                     [[FEN.starting()], [FEN.first()], [FEN.starting()], [FEN.first()]],
                     [[], [], [], []],
                     [[1], [1], [0.5], [0.5]],
                 ),
-                Trace(
+                CorrectableTrace(
                     [[FEN.starting()], [FEN.first()], [FEN.starting()], [FEN.first()]],
                     [[], [], [], []],
                     [[1], [1], [0.5], [0.5]],
                 ),
             ),
             (
-                Trace(
+                CorrectableTrace(
                     [
                         [FEN.starting(), FEN.first()],
                         [FEN.first(), FEN.starting()],
@@ -73,7 +49,7 @@ class TestTrace:
                     [[SAN.first()], [SAN.first()], [SAN.first()], [SAN.first()]],
                     [[0, 1], [0, 1], [0, 0.5], [0, 0.5]],
                 ),
-                Trace(
+                CorrectableTrace(
                     [
                         [FEN.starting(), FEN.first(), FEN.white_end()],
                         [FEN.first(), FEN.starting(), FEN.black_end()],
@@ -85,7 +61,7 @@ class TestTrace:
                 ),
             ),
             (
-                Trace(
+                CorrectableTrace(
                     [
                         [FEN.starting(), FEN.first(), FEN.starting()],
                         [FEN.first(), FEN.starting(), FEN.first()],
@@ -100,7 +76,7 @@ class TestTrace:
                     ],
                     [[0, 0, 1], [0, 0, 1], [0, 0, 0.5], [0, 0, 0.5]],
                 ),
-                Trace(
+                CorrectableTrace(
                     [
                         [FEN.starting(), FEN.first(), FEN.starting(), FEN.black_end()],
                         [FEN.first(), FEN.starting(), FEN.first(), FEN.white_end()],
@@ -118,80 +94,39 @@ class TestTrace:
             ),
         ],
     )
-    def test_end_corrected(self, trace: Trace, corrected: Trace) -> None:
+    def test_end_corrected(self, trace: CorrectableTrace, corrected: CorrectableTrace) -> None:
         assert trace.end_corrected() == corrected
 
 
-class TestMappableTrace:
-    def test_concatenated(self) -> None:
-        assert MappableTrace([[]], [[]], [[]]).concatenated(MappableTrace([[]], [[]], [[]])) == MappableTrace(
-            [[], []], [[], []], [[], []]
-        )
-
-    def test_inner_concatenated(self) -> None:
-        assert MappableTrace._make(Trace.from_FENs([FEN.starting()])).inner_concatenated(
-            Trace([[FEN.first()]], [[SAN.first()]], [[0]])
-        ) == Trace([[FEN.starting(), FEN.first()]], [[SAN.first()]], [[0]])
-
-
-class TestIndexableTrace:
-    def test_inner_odd_indexed(self) -> None:
-        assert IndexableTrace([[FEN.starting(), FEN.first()]], [[SAN.first()]], [[0]]).inner_odd_indexed() == Trace(
-            [[FEN.first()]], [[]], [[]]
-        )
-
-    def test_inner_even_indexed(self) -> None:
-        assert IndexableTrace([[FEN.starting(), FEN.first()]], [[SAN.first()]], [[0]]).inner_even_indexed() == Trace(
-            [[FEN.starting()]], [[SAN.first()]], [[0]]
-        )
-
-
 class TestSplitableTrace:
-    def test_color_splited(self) -> None:
-        SplitableTrace([[FEN.starting()], [FEN.first()]], [[SAN.first()], []], [[0], [0]]).color_splited() == (
-            Trace([[FEN.starting()]], [[SAN.first()]], [[0]]),
-            Trace([[FEN.first()]], [[]], [[]]),
-        )
-
-    def test_inner_parity_splited(self) -> None:
-        SplitableTrace([[FEN.starting(), FEN.first()]], [[SAN.first()]], [[0]]).inner_parity_splited() == (
-            Trace([[FEN.starting()]], [[SAN.first()]], [[0]]),
-            Trace([[FEN.first()]], [[]], [[]]),
-        )
-
     @pytest.mark.parametrize(
-        "target, white, black",
+        "target, colored",
         [
             (
                 SplitableTrace([[FEN.starting(), FEN.first(), FEN.starting()]], [[SAN.first(), SAN.first()]], [[0, 0]]),
-                Trace([[FEN.starting(), FEN.starting()]], [[SAN.first()]], [[0]]),
-                Trace([[FEN.first()]], [[]], [[0]]),
+                ColoredTrace(
+                    Trace([[FEN.starting(), FEN.starting()]], [[SAN.first()]], [[0]]),
+                    Trace([[FEN.first()]], [[]], [[0]]),
+                ),
             ),
             (
                 SplitableTrace([[FEN.starting(), FEN.first()]], [[SAN.first()]], [[0]]),
-                Trace([[FEN.starting()]], [[]], [[0]]),
-                Trace([[FEN.first()]], [[]], [[]]),
+                ColoredTrace(
+                    Trace([[FEN.starting()]], [[]], [[0]]),
+                    Trace([[FEN.first()]], [[]], [[]]),
+                ),
             ),
             (
                 SplitableTrace([[FEN.starting()]], [[]], [[]]),
-                Trace([[FEN.starting()]], [[]], [[]]),
-                Trace([], [], []),
+                ColoredTrace(
+                    Trace([[FEN.starting()]], [[]], [[]]),
+                    Trace([], [], []),
+                ),
             ),
         ],
     )
-    def test_split_with_color_turn(self, target: SplitableTrace, white: Trace, black: Trace) -> None:
-        assert target.splited_with_color_turn() == (white, black)
-
-    def test_color_unioned(self) -> None:
-        assert SplitableTrace.color_unioned(
-            5,
-            OneStepTrace(Trace([[FEN.starting()]], [[SAN.first()]], [[0], [0.5]]), [0, 1], [0]),
-            OneStepTrace(Trace([[FEN.first()]], [[SAN.first()]], [[0], [0.5]]), [2, 3], [2]),
-        ) == SplitableTrace(
-            [[FEN.starting()], [], [FEN.first()], [], []],
-            [[SAN.first()], [], [SAN.first()], [], []],
-            [[0], [0.5], [0], [0.5], []],
-        )
+    def test_split_with_color_turn(self, target: SplitableTrace, colored: ColoredTrace) -> None:
+        assert target.splited_with_color_turn() == colored
 
 
 class TestMovableTrace:
@@ -240,8 +175,10 @@ class TestProducableTrace:
                 (
                     [FEN.starting(), FEN.first()],
                     status_type(self.rest_prefix),
-                    Trace(self.common_white.fens, self.common_white.sans, self.additional_results[i]),
-                    Trace(self.common_black.fens, self.common_black.sans, self.additional_results[i]),
+                    ColoredTrace(
+                        Trace(self.common_white.fens, self.common_white.sans, self.additional_results[i]),
+                        Trace(self.common_black.fens, self.common_black.sans, self.additional_results[i]),
+                    ),
                     producable,
                 )
                 for status_type, i in [(FakeCheckmateStatus, 0), (FakeStalemateStatus, 1)]
@@ -250,20 +187,22 @@ class TestProducableTrace:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        "fens, status, white, black, producable",
+        "fens, status, colored, producable",
         [
             (
                 [FEN.starting(), FEN.first()],
                 FakeStatus(),
-                Trace(
-                    [[FEN.starting(), FEN.starting()], [FEN.starting(), FEN.starting()]],
-                    [[SAN.first()], [SAN.first()]],
-                    [[0, 0], [0, 0]],
-                ),
-                Trace(
-                    [[FEN.first(), FEN.first()], [FEN.first(), FEN.first()]],
-                    [[SAN.first()], [SAN.first()]],
-                    [[0, 0], [0, 0]],
+                ColoredTrace(
+                    Trace(
+                        [[FEN.starting(), FEN.starting()], [FEN.starting(), FEN.starting()]],
+                        [[SAN.first()], [SAN.first()]],
+                        [[0, 0], [0, 0]],
+                    ),
+                    Trace(
+                        [[FEN.first(), FEN.first()], [FEN.first(), FEN.first()]],
+                        [[SAN.first()], [SAN.first()]],
+                        [[0, 0], [0, 0]],
+                    ),
                 ),
                 FiniteTraceProducable(3),
             ),
@@ -313,9 +252,9 @@ class TestProducableTrace:
         ),
     )
     async def test_produced(
-        self, fens: list[str], status: IStatus, white: Trace, black: Trace, producable: ITraceProducable
+        self, fens: list[str], status: IStatus, colored: ColoredTrace, producable: ITraceProducable
     ) -> None:
-        assert await ProducableTrace(fens, status, FakeWhiteMovement(), FakeBlackMovement(), producable).produced() == (
-            white,
-            black,
+        assert (
+            await ProducableTrace(status, FakeWhiteMovement(), FakeBlackMovement(), producable).produced(fens)
+            == colored
         )
