@@ -7,8 +7,8 @@ from domain.dto.playerdto import (
     PlayerGameResponse,
     PlayerRateRequest,
     PlayerRateResponse,
-    PlayerTrajactoryRequest,
-    PlayerTrajactoryResponse,
+    PlayerTrajectoryRequest,
+    PlayerTrajectoryResponse,
 )
 from fastapi import APIRouter, status
 from fastapi.encoders import jsonable_encoder
@@ -18,9 +18,9 @@ router: APIRouter = APIRouter(prefix="/player")
 
 
 @router.post("/trajectory", status_code=status.HTTP_200_OK, description="Trajactory starting with the requested FEN")
-async def trajectory(request: PlayerTrajactoryRequest) -> JSONResponse:
+async def trajectory(request: PlayerTrajectoryRequest) -> JSONResponse:
     try:
-        return JSONResponse(content=jsonable_encoder(PlayerTrajactoryResponse()))
+        return JSONResponse(content=jsonable_encoder(PlayerTrajectoryResponse()))
     except RuntimeError as ex:
         return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=jsonable_encoder(ex.args[0]))
 

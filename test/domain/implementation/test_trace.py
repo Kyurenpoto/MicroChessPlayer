@@ -255,6 +255,8 @@ class TestProducableTrace:
         self, fens: list[str], status: IStatus, colored: ColoredTrace, producable: ITraceProducable
     ) -> None:
         assert (
-            await ProducableTrace(status, FakeWhiteMovement(), FakeBlackMovement(), producable).produced(fens)
+            await ProducableTrace(status, FakeWhiteMovement(), FakeBlackMovement(), producable).produced_with_spliting(
+                fens
+            )
             == colored
         )

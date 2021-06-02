@@ -11,16 +11,17 @@ class PlayerAIInfo(BaseModel):
     url: str
 
 
-class PlayerTrajactoryRequest(BaseModel):
+class PlayerTrajectoryRequest(BaseModel):
     fens: list[str]
     white: PlayerAIInfo
     black: PlayerAIInfo
+    step: int
 
 
-class PlayerTrajactoryResponse(BaseModel):
+class PlayerTrajectoryResponse(BaseModel):
     fens: list[list[str]]
     sans: list[list[str]]
-    results: list[int]
+    results: list[list[float]]
 
 
 class PlayerGameRequest(BaseModel):
@@ -31,7 +32,7 @@ class PlayerGameRequest(BaseModel):
 class PlayerGameResponse(BaseModel):
     fens: list[str]
     sans: list[str]
-    result: int
+    result: str
 
 
 class PlayerRateRequest(BaseModel):
@@ -43,8 +44,8 @@ class PlayerRateRequest(BaseModel):
 class PlayerAIResult(BaseModel):
     score: int
     win: int
-    draw: int
     lose: int
+    draw: int
 
 
 class PlayerRateResponse(BaseModel):

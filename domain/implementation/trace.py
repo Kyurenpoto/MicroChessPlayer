@@ -151,6 +151,9 @@ class ColoredTrace(NamedTuple):
     def from_trace(cls, trace: Trace) -> ColoredTrace:
         return ColoredTrace(IndexableTrace._make(trace).colored("w"), IndexableTrace._make(trace).colored("b"))
 
+    def concatenated(self) -> Trace:
+        return MappableTrace._make(self.white).concatenated(self.black)
+
 
 class ParitiedTrace(NamedTuple):
     even: Trace
@@ -249,14 +252,16 @@ class OneStepProduct(NamedTuple):
     black: NoneStepTrace
 
     @classmethod
-    def from_FENs(cls, fens: list[str]) -> OneStepProduct:
-        trace: MovableTrace = MovableTrace.from_FENs(fens)
-
+    def from_trace(cls, trace: MovableTrace) -> OneStepProduct:
         return OneStepProduct(
             trace,
             NoneStepTrace.from_trace_with_color(trace, "w"),
             NoneStepTrace.from_trace_with_color(trace, "b"),
         )
+
+    @classmethod
+    def from_FENs(cls, fens: list[str]) -> OneStepProduct:
+        return OneStepProduct.from_trace(MovableTrace.from_FENs(fens))
 
     def moved(self, next_white: NoneStepTrace, next_black: NoneStepTrace) -> OneStepProduct:
         return OneStepProduct(
@@ -326,7 +331,7 @@ class ProducableTrace(NamedTuple):
     movement_black: IMovement
     producable: ITraceProducable
 
-    async def produced(self, fens: list[str]) -> ColoredTrace:
+    async def produced(self, fens: list[str]) -> MovableTrace:
         product: OneStepProduct = await self.producable.n_step_produced(
             OneStepProduct.from_FENs(fens), self.status, self.movement_white, self.movement_black
         )
@@ -334,4 +339,7 @@ class ProducableTrace(NamedTuple):
         if not product.empty():
             product = await product.none_step_produced(self.status)
 
-        return product.splited()
+        return product.trace
+
+    async def produced_with_spliting(self, fens: list[str]) -> ColoredTrace:
+        return OneStepProduct.from_trace(await self.produced(fens)).splited()
