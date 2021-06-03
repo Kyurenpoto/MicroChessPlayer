@@ -2,27 +2,36 @@
 
 # SPDX-License-Identifier: GPL-3.0-only
 
-from domain.dto.playerdto import (
-    PlayerGameRequest,
-    PlayerGameResponse,
-    PlayerRateRequest,
-    PlayerRateResponse,
-    PlayerTrajectoryRequest,
-    PlayerTrajectoryResponse,
-)
+from typing import Optional
+
+from application.playground import MicroChessPlayGround
+from domain.dto.playerdto import PlayerGameRequest, PlayerRateRequest, PlayerTrajectoryRequest
 from fastapi import APIRouter, status
-from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
+from presentation.response import (
+    CreatedGameResponse,
+    CreatedRateResponse,
+    CreatedTrajectoryResponse,
+    ExceptionHandledResponse,
+)
 
 router: APIRouter = APIRouter(prefix="/player")
+playground: Optional[MicroChessPlayGround] = None
 
 
-@router.post("/trajectory", status_code=status.HTTP_200_OK, description="Trajactory starting with the requested FEN")
+def setting(url_env: str) -> None:
+    global playground
+
+    playground = MicroChessPlayGround.from_url(url_env)
+
+
+@router.post(
+    "/trajectory",
+    status_code=status.HTTP_200_OK,
+    description="Trajactory starting with the requested FEN",
+)
 async def trajectory(request: PlayerTrajectoryRequest) -> JSONResponse:
-    try:
-        return JSONResponse(content=jsonable_encoder(PlayerTrajectoryResponse()))
-    except RuntimeError as ex:
-        return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=jsonable_encoder(ex.args[0]))
+    return await ExceptionHandledResponse(CreatedTrajectoryResponse(request)).handled(playground)
 
 
 @router.post(
@@ -31,10 +40,7 @@ async def trajectory(request: PlayerTrajectoryRequest) -> JSONResponse:
     description="Trajactory from starting FEN to end",
 )
 async def game(request: PlayerGameRequest) -> JSONResponse:
-    try:
-        return JSONResponse(content=jsonable_encoder(PlayerGameResponse()))
-    except RuntimeError as ex:
-        return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=jsonable_encoder(ex.args[0]))
+    return await ExceptionHandledResponse(CreatedGameResponse(request)).handled(playground)
 
 
 @router.post(
@@ -43,7 +49,4 @@ async def game(request: PlayerGameRequest) -> JSONResponse:
     description="Win rate when playing black and white respectively",
 )
 async def rate(request: PlayerRateRequest) -> JSONResponse:
-    try:
-        return JSONResponse(content=jsonable_encoder(PlayerRateResponse()))
-    except RuntimeError as ex:
-        return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=jsonable_encoder(ex.args[0]))
+    return await ExceptionHandledResponse(CreatedRateResponse(request)).handled(playground)

@@ -10,4 +10,4 @@ from infra.postclient import PostClient
 class RequestedNextFEN(list[str]):
     @classmethod
     async def from_url_with_FENs_SANs(cls, url: str, fens: list[str], sans: list[str]) -> RequestedNextFEN:
-        return (await PostClient(url).post({"fens": fens, "sans": sans}))["next_fens"]
+        return (await PostClient(url + "/next-fen").post({"fens": fens, "sans": sans}))["next_fens"]

@@ -2,8 +2,6 @@
 
 # SPDX-License-Identifier: GPL-3.0-only
 
-from typing import Union
-
 from pydantic import BaseModel
 
 
@@ -51,11 +49,3 @@ class PlayerAIResult(BaseModel):
 class PlayerRateResponse(BaseModel):
     white: PlayerAIResult
     black: PlayerAIResult
-
-
-class PlayerErrorResponse(BaseModel):
-    message: str
-    location: str
-    param: str
-    value: Union[list[str], PlayerAIInfo, int]
-    error: str
