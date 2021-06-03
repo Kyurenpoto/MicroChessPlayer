@@ -64,6 +64,9 @@ class Trace(NamedTuple):
     def to_not_empty_indice(self) -> Iterable[int]:
         return Enumerable(self.fens).to_conditional_indice(lambda x: len(x) != 0)
 
+    def empty(self) -> bool:
+        return len(self.fens) == 0
+
 
 class CorrectableTrace(Trace):
     def SAN_normalized(self) -> CorrectableTrace:
@@ -238,11 +241,17 @@ class MovableTrace(Trace):
 
 class MovableNoneStepTrace(NoneStepTrace):
     async def moved(self, status: IStatus, movement: IMovement) -> MovableNoneStepTrace:
+        if self.trace.empty():
+            return self
+
         trace, secondary_indice = await MovableTrace._make(self.trace).to_move(status, movement)
 
         return MovableNoneStepTrace(trace, Indexable(self.indice).indexed(secondary_indice))
 
     async def last_status_updated(self, status: IStatus) -> MovableNoneStepTrace:
+        if self.trace.empty():
+            return self
+
         return MovableNoneStepTrace(await MovableTrace._make(self.trace).to_last_update(status), self.indice)
 
 
