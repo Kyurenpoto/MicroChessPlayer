@@ -22,7 +22,7 @@ class MicroChessPlayGround(NamedTuple):
 
     @classmethod
     def from_url(cls, url_env: str) -> MicroChessPlayGround:
-        return MicroChessPlayGround(MicroChessPlayer(url_env))
+        return MicroChessPlayGround(MicroChessPlayer.from_url(url_env))
 
     async def trajectory(self, request: PlayerTrajectoryRequest) -> PlayerTrajectoryResponse:
         return await self.player.trajectory(request)

@@ -4,17 +4,26 @@
 
 from __future__ import annotations
 
+from abc import ABCMeta, abstractmethod
 from typing import NamedTuple
 
-from domain.implementation.movement import FEN, Movement
+from domain.implementation.movement import FEN, SAN, Movement
 from domain.implementation.status import Status
 
 from .trace import InfiniteTraceProducable, ProducableTrace, Trace
 
 
-class Game(NamedTuple):
+class IGame(metaclass=ABCMeta):
+    @abstractmethod
+    async def produced(self) -> Trace:
+        pass
+
+
+class GameData(NamedTuple):
     producable: ProducableTrace
 
+
+class Game(GameData, IGame):
     @classmethod
     def from_urls(cls, url_env: str, url_ai_white: str, url_ai_black: str) -> Game:
         return Game(
@@ -28,3 +37,8 @@ class Game(NamedTuple):
 
     async def produced(self) -> Trace:
         return await self.producable.produced([FEN.starting()])
+
+
+class FakeGame(IGame):
+    async def produced(self) -> Trace:
+        return Trace([[FEN.starting()]], [[]], [[1]])
