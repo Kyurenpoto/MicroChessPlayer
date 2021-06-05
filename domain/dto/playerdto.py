@@ -2,6 +2,10 @@
 
 # SPDX-License-Identifier: GPL-3.0-only
 
+from __future__ import annotations
+
+from typing import Union
+
 from pydantic import AnyHttpUrl, BaseModel
 from pydantic.fields import Field
 
@@ -162,4 +166,31 @@ class PlayerMeasurementResponse(BaseModel):
     black: PlayerAIMesurement = Field(
         ...,
         description="Measurement of black-side AI",
+    )
+
+
+class PlayerErrorResponse(BaseModel):
+    message: str = Field(
+        ...,
+        description="Error message",
+    )
+    location: str = Field(
+        ...,
+        description="Error location",
+    )
+    param: str = Field(
+        ...,
+        description="Parameters of request",
+    )
+    value: Union[
+        tuple[list[str], PlayerAIInfo, PlayerAIInfo, int],
+        tuple[PlayerAIInfo, PlayerAIInfo],
+        tuple[PlayerAIInfo, PlayerAIInfo, int],
+    ] = Field(
+        ...,
+        description="Values of request",
+    )
+    error: str = Field(
+        ...,
+        description="Error type",
     )

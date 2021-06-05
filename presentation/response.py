@@ -2,15 +2,49 @@
 
 # SPDX-License-Identifier: GPL-3.0-only
 
+from __future__ import annotations
+
 from abc import ABCMeta, abstractmethod
-from typing import NamedTuple, Optional
+from typing import NamedTuple, Optional, Union
 
 from application.playground import MicroChessPlayGround
-from domain.dto.playerdto import PlayerGameRequest, PlayerMeasurementRequest, PlayerTrajectoryRequest
+from domain.dto.playerdto import (
+    PlayerAIInfo,
+    PlayerErrorResponse,
+    PlayerGameRequest,
+    PlayerMeasurementRequest,
+    PlayerTrajectoryRequest,
+)
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from httpx import HTTPStatusError, InvalidURL, RequestError
+
+
+class OkResponse(JSONResponse):
+    @classmethod
+    def from_response_data(cls, data) -> OkResponse:
+        return OkResponse(content=jsonable_encoder(data))
+
+
+class BadRequestResponse(JSONResponse):
+    @classmethod
+    def from_response_data(cls, data) -> BadRequestResponse:
+        return BadRequestResponse(status_code=status.HTTP_400_BAD_REQUEST, content=jsonable_encoder(data))
+
+
+class NotFoundResponse(JSONResponse):
+    @classmethod
+    def from_response_data(cls, data) -> NotFoundResponse:
+        return NotFoundResponse(status_code=status.HTTP_404_NOT_FOUND, content=jsonable_encoder(data))
+
+
+class UnprocessableEntityResponse(JSONResponse):
+    @classmethod
+    def from_response_data(cls, data) -> UnprocessableEntityResponse:
+        return UnprocessableEntityResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=jsonable_encoder(data)
+        )
 
 
 class TrajectoryRequestData(NamedTuple):
@@ -30,20 +64,70 @@ class ICreatedResponse(metaclass=ABCMeta):
     async def created(self, playground: Optional[MicroChessPlayGround]) -> JSONResponse:
         pass
 
+    @abstractmethod
+    def param(self) -> str:
+        pass
+
+    @abstractmethod
+    def value(
+        self,
+    ) -> Union[
+        tuple[list[str], PlayerAIInfo, PlayerAIInfo, int],
+        tuple[PlayerAIInfo, PlayerAIInfo],
+        tuple[PlayerAIInfo, PlayerAIInfo, int],
+    ]:
+        pass
+
 
 class CreatedTrajectoryResponse(TrajectoryRequestData, ICreatedResponse):
     async def created(self, playground: Optional[MicroChessPlayGround]) -> JSONResponse:
-        return JSONResponse(content=jsonable_encoder(await playground.trajectory(self.request)))
+        return OkResponse.from_response_data(await playground.trajectory(self.request))
+
+    def param(self) -> str:
+        return "fens, white, black, step"
+
+    def value(
+        self,
+    ) -> Union[
+        tuple[list[str], PlayerAIInfo, PlayerAIInfo, int],
+        tuple[PlayerAIInfo, PlayerAIInfo],
+        tuple[PlayerAIInfo, PlayerAIInfo, int],
+    ]:
+        return self.request.fens, self.request.white, self.request.black, self.request.step
 
 
 class CreatedGameResponse(GameRequestData, ICreatedResponse):
     async def created(self, playground: Optional[MicroChessPlayGround]) -> JSONResponse:
-        return JSONResponse(content=jsonable_encoder(await playground.game(self.request)))
+        return OkResponse.from_response_data(await playground.game(self.request))
+
+    def param(self) -> str:
+        return "white, black"
+
+    def value(
+        self,
+    ) -> Union[
+        tuple[list[str], PlayerAIInfo, PlayerAIInfo, int],
+        tuple[PlayerAIInfo, PlayerAIInfo],
+        tuple[PlayerAIInfo, PlayerAIInfo, int],
+    ]:
+        return self.request.white, self.request.black
 
 
 class CreatedMesurementResponse(RateRequestData, ICreatedResponse):
     async def created(self, playground: Optional[MicroChessPlayGround]) -> JSONResponse:
-        return JSONResponse(content=jsonable_encoder(await playground.mesurement(self.request)))
+        return OkResponse.from_response_data(await playground.mesurement(self.request))
+
+    def param(self) -> str:
+        return "white, black, playtime"
+
+    def value(
+        self,
+    ) -> Union[
+        tuple[list[str], PlayerAIInfo, PlayerAIInfo, int],
+        tuple[PlayerAIInfo, PlayerAIInfo],
+        tuple[PlayerAIInfo, PlayerAIInfo, int],
+    ]:
+        return self.request.white, self.request.black
 
 
 class ExceptionHandledResponse(NamedTuple):
@@ -53,20 +137,35 @@ class ExceptionHandledResponse(NamedTuple):
         try:
             return await self.created.created(playground)
         except InvalidURL as ex:
-            return JSONResponse(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                content=jsonable_encoder(f"Requested with invalid url: {ex.args[0]!r}"),
+            return BadRequestResponse.from_response_data(
+                PlayerErrorResponse(
+                    message=f"Requested with invalid url: {ex.args[0]!r}",
+                    location="body",
+                    param=self.created.param(),
+                    value=self.created.value(),
+                    error="request.InvalidURL",
+                )
             )
         except RequestError as ex:
-            return JSONResponse(
-                status_code=status.HTTP_404_NOT_FOUND,
-                content=jsonable_encoder(f"An error occurred while requesting {ex.request.url!r}: {ex.args[0]!r}"),
+            return NotFoundResponse.from_response_data(
+                PlayerErrorResponse(
+                    message=f"An error occurred while requesting {ex.request.url!r}: {ex.args[0]!r}",
+                    location="body",
+                    param=self.created.param(),
+                    value=self.created.value(),
+                    error="request.RequestError",
+                )
             )
         except HTTPStatusError as ex:
-            return JSONResponse(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                content=jsonable_encoder(
-                    f"Error response {ex.response.status_code} "
-                    + f"while requesting {ex.request.url!r}: {ex.response.json()!r}"
-                ),
+            return UnprocessableEntityResponse.from_response_data(
+                PlayerErrorResponse(
+                    message=(
+                        f"Error response {ex.response.status_code} "
+                        + f"while requesting {ex.request.url!r}: {ex.response.json()!r}"
+                    ),
+                    location="body",
+                    param=self.created.param(),
+                    value=self.created.value(),
+                    error="request.HTTPStatusError",
+                )
             )
