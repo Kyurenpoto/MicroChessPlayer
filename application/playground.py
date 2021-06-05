@@ -9,8 +9,8 @@ from typing import NamedTuple
 from domain.dto.playerdto import (
     PlayerGameRequest,
     PlayerGameResponse,
-    PlayerRateRequest,
-    PlayerRateResponse,
+    PlayerMeasurementRequest,
+    PlayerMeasurementResponse,
     PlayerTrajectoryRequest,
     PlayerTrajectoryResponse,
 )
@@ -30,5 +30,5 @@ class MicroChessPlayGround(NamedTuple):
     async def game(self, request: PlayerGameRequest) -> PlayerGameResponse:
         return await self.player.game(request)
 
-    async def rate(self, request: PlayerRateRequest) -> PlayerRateResponse:
-        return await self.player.rate(request)
+    async def mesurement(self, request: PlayerMeasurementRequest) -> PlayerMeasurementResponse:
+        return await self.player.measurement(request)

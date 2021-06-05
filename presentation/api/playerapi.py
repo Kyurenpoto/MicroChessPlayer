@@ -5,12 +5,19 @@
 from typing import Optional
 
 from application.playground import MicroChessPlayGround
-from domain.dto.playerdto import PlayerGameRequest, PlayerRateRequest, PlayerTrajectoryRequest
-from fastapi import APIRouter, status
+from domain.dto.playerdto import (
+    PlayerGameRequest,
+    PlayerGameResponse,
+    PlayerMeasurementRequest,
+    PlayerMeasurementResponse,
+    PlayerTrajectoryRequest,
+    PlayerTrajectoryResponse,
+)
+from fastapi import APIRouter, Body, status
 from fastapi.responses import JSONResponse
 from presentation.response import (
     CreatedGameResponse,
-    CreatedRateResponse,
+    CreatedMesurementResponse,
     CreatedTrajectoryResponse,
     ExceptionHandledResponse,
 )
@@ -27,8 +34,9 @@ def setting(url_env: str) -> None:
 
 @router.post(
     "/trajectory",
-    status_code=status.HTTP_200_OK,
     description="Trajactory starting with the requested FEN",
+    status_code=status.HTTP_200_OK,
+    response_model=PlayerTrajectoryResponse,
 )
 async def trajectory(request: PlayerTrajectoryRequest) -> JSONResponse:
     return await ExceptionHandledResponse(CreatedTrajectoryResponse(request)).handled(playground)
@@ -36,17 +44,19 @@ async def trajectory(request: PlayerTrajectoryRequest) -> JSONResponse:
 
 @router.post(
     "/game",
-    status_code=status.HTTP_200_OK,
     description="Trajactory from starting FEN to end",
+    status_code=status.HTTP_200_OK,
+    response_model=PlayerGameResponse,
 )
 async def game(request: PlayerGameRequest) -> JSONResponse:
     return await ExceptionHandledResponse(CreatedGameResponse(request)).handled(playground)
 
 
 @router.post(
-    "/rate",
+    "/mesurement",
+    description="Mesurement of win/lose/draw when playing white",
     status_code=status.HTTP_200_OK,
-    description="Win rate when playing black and white respectively",
+    response_model=PlayerMeasurementResponse,
 )
-async def rate(request: PlayerRateRequest) -> JSONResponse:
-    return await ExceptionHandledResponse(CreatedRateResponse(request)).handled(playground)
+async def mesurement(request: PlayerMeasurementRequest) -> JSONResponse:
+    return await ExceptionHandledResponse(CreatedMesurementResponse(request)).handled(playground)

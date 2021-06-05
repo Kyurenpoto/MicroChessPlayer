@@ -8,16 +8,16 @@ from abc import ABCMeta, abstractmethod
 from typing import Iterable, NamedTuple
 
 from domain.dto.playerdto import (
-    PlayerAIResult,
+    PlayerAIMesurement,
     PlayerGameRequest,
     PlayerGameResponse,
-    PlayerRateRequest,
-    PlayerRateResponse,
+    PlayerMeasurementRequest,
+    PlayerMeasurementResponse,
     PlayerTrajectoryRequest,
     PlayerTrajectoryResponse,
 )
 from domain.implementation.game import FakeGame, Game, IGame
-from domain.implementation.rate import FakeRate, IRate, Rate
+from domain.implementation.measurement import FakeMeasurement, IMeasurement, Measurement
 from domain.implementation.trace import Trace
 from domain.implementation.trajectory import FakeTrajectory, ITrajectory, Trajectory
 
@@ -32,7 +32,7 @@ class IService(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def rate(self, url_env: str, url_ai_white: str, url_ai_black: str) -> IRate:
+    def rate(self, url_env: str, url_ai_white: str, url_ai_black: str) -> IMeasurement:
         pass
 
 
@@ -43,8 +43,8 @@ class Service(IService):
     def game(self, url_env: str, url_ai_white: str, url_ai_black: str) -> IGame:
         return Game.from_urls(url_env, url_ai_white, url_ai_black)
 
-    def rate(self, url_env: str, url_ai_white: str, url_ai_black: str) -> IRate:
-        return Rate.from_urls(url_env, url_ai_white, url_ai_black)
+    def rate(self, url_env: str, url_ai_white: str, url_ai_black: str) -> IMeasurement:
+        return Measurement.from_urls(url_env, url_ai_white, url_ai_black)
 
 
 class FakeService(IService):
@@ -54,8 +54,8 @@ class FakeService(IService):
     def game(self, url_env: str, url_ai_white: str, url_ai_black: str) -> IGame:
         return FakeGame()
 
-    def rate(self, url_env: str, url_ai_white: str, url_ai_black: str) -> IRate:
-        return FakeRate()
+    def rate(self, url_env: str, url_ai_white: str, url_ai_black: str) -> IMeasurement:
+        return FakeMeasurement()
 
 
 class Results(list[float]):
@@ -75,13 +75,13 @@ class Statistics(dict[str, int]):
             {"1-0": results.count("1-0"), "0-1": results.count("0-1"), "1/2-1/2": results.count("1/2-1/2")}
         )
 
-    def white(self) -> PlayerAIResult:
-        return PlayerAIResult(
+    def white(self) -> PlayerAIMesurement:
+        return PlayerAIMesurement(
             score=(self["1-0"] + (self["1/2-1/2"] * 0.5)), win=self["1-0"], draw=self["1/2-1/2"], lose=self["0-1"]
         )
 
-    def black(self) -> PlayerAIResult:
-        return PlayerAIResult(
+    def black(self) -> PlayerAIMesurement:
+        return PlayerAIMesurement(
             score=(self["0-1"] + (self["1/2-1/2"] * 0.5)), win=self["0-1"], draw=self["1/2-1/2"], lose=self["1-0"]
         )
 
@@ -110,9 +110,9 @@ class MicroChessPlayer(NamedTuple):
             fens=produced.fens[0], sans=produced.sans[0], result=str(Results(produced.results[0]))
         )
 
-    async def rate(self, request: PlayerRateRequest) -> PlayerRateResponse:
+    async def measurement(self, request: PlayerMeasurementRequest) -> PlayerMeasurementResponse:
         statistics: Statistics = Statistics.from_traces(
             await self.service.rate(self.url_env, request.white.url, request.black.url).produced(request.playtime)
         )
 
-        return PlayerRateResponse(white=statistics.white(), black=statistics.black())
+        return PlayerMeasurementResponse(white=statistics.white(), black=statistics.black())

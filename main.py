@@ -13,6 +13,7 @@ app: FastAPI = FastAPI()
 
 app.include_router(router)
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MicroChess API Server")
 

@@ -33,19 +33,19 @@ class PlayerGameResponse(BaseModel):
     result: str
 
 
-class PlayerRateRequest(BaseModel):
+class PlayerMeasurementRequest(BaseModel):
     white: PlayerAIInfo
     black: PlayerAIInfo
     playtime: int
 
 
-class PlayerAIResult(BaseModel):
+class PlayerAIMesurement(BaseModel):
     score: int
     win: int
     lose: int
     draw: int
 
 
-class PlayerRateResponse(BaseModel):
+class PlayerMeasurementResponse(BaseModel):
     white: PlayerAIResult
     black: PlayerAIResult

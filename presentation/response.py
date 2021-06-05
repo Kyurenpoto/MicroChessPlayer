@@ -6,11 +6,23 @@ from abc import ABCMeta, abstractmethod
 from typing import NamedTuple, Optional
 
 from application.playground import MicroChessPlayGround
-from domain.dto.playerdto import PlayerGameRequest, PlayerRateRequest, PlayerTrajectoryRequest
+from domain.dto.playerdto import PlayerGameRequest, PlayerMeasurementRequest, PlayerTrajectoryRequest
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from httpx import HTTPStatusError, InvalidURL, RequestError
+
+
+class TrajectoryRequestData(NamedTuple):
+    request: PlayerTrajectoryRequest
+
+
+class GameRequestData(NamedTuple):
+    request: PlayerGameRequest
+
+
+class RateRequestData(NamedTuple):
+    request: PlayerMeasurementRequest
 
 
 class ICreatedResponse(metaclass=ABCMeta):
@@ -19,17 +31,9 @@ class ICreatedResponse(metaclass=ABCMeta):
         pass
 
 
-class TrajectoryRequestData(NamedTuple):
-    request: PlayerTrajectoryRequest
-
-
 class CreatedTrajectoryResponse(TrajectoryRequestData, ICreatedResponse):
     async def created(self, playground: Optional[MicroChessPlayGround]) -> JSONResponse:
         return JSONResponse(content=jsonable_encoder(await playground.trajectory(self.request)))
-
-
-class GameRequestData(NamedTuple):
-    request: PlayerGameRequest
 
 
 class CreatedGameResponse(GameRequestData, ICreatedResponse):
@@ -37,13 +41,9 @@ class CreatedGameResponse(GameRequestData, ICreatedResponse):
         return JSONResponse(content=jsonable_encoder(await playground.game(self.request)))
 
 
-class RateRequestData(NamedTuple):
-    request: PlayerRateRequest
-
-
-class CreatedRateResponse(RateRequestData, ICreatedResponse):
+class CreatedMesurementResponse(RateRequestData, ICreatedResponse):
     async def created(self, playground: Optional[MicroChessPlayGround]) -> JSONResponse:
-        return JSONResponse(content=jsonable_encoder(await playground.rate(self.request)))
+        return JSONResponse(content=jsonable_encoder(await playground.mesurement(self.request)))
 
 
 class ExceptionHandledResponse(NamedTuple):
@@ -69,9 +69,4 @@ class ExceptionHandledResponse(NamedTuple):
                     f"Error response {ex.response.status_code} "
                     + f"while requesting {ex.request.url!r}: {ex.response.json()!r}"
                 ),
-            )
-        except Exception as ex:
-            return JSONResponse(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                content=jsonable_encoder(f"Unhandled Exception: {ex.args[0]!r}"),
             )
