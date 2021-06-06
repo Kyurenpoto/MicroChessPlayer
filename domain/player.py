@@ -8,7 +8,7 @@ from abc import ABCMeta, abstractmethod
 from typing import Iterable, NamedTuple
 
 from domain.dto.playerdto import (
-    PlayerAIMesurement,
+    PlayerAIMeasurement,
     PlayerGameRequest,
     PlayerGameResponse,
     PlayerMeasurementRequest,
@@ -75,13 +75,13 @@ class Statistics(dict[str, int]):
             {"1-0": results.count("1-0"), "0-1": results.count("0-1"), "1/2-1/2": results.count("1/2-1/2")}
         )
 
-    def white(self) -> PlayerAIMesurement:
-        return PlayerAIMesurement(
+    def white(self) -> PlayerAIMeasurement:
+        return PlayerAIMeasurement(
             score=(self["1-0"] + (self["1/2-1/2"] * 0.5)), win=self["1-0"], draw=self["1/2-1/2"], lose=self["0-1"]
         )
 
-    def black(self) -> PlayerAIMesurement:
-        return PlayerAIMesurement(
+    def black(self) -> PlayerAIMeasurement:
+        return PlayerAIMeasurement(
             score=(self["0-1"] + (self["1/2-1/2"] * 0.5)), win=self["0-1"], draw=self["1/2-1/2"], lose=self["1-0"]
         )
 

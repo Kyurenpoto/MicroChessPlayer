@@ -113,9 +113,9 @@ class CreatedGameResponse(GameRequestData, ICreatedResponse):
         return self.request.white, self.request.black
 
 
-class CreatedMesurementResponse(RateRequestData, ICreatedResponse):
+class CreatedMeasurementResponse(RateRequestData, ICreatedResponse):
     async def created(self, playground: Optional[MicroChessPlayGround]) -> JSONResponse:
-        return OkResponse.from_response_data(await playground.mesurement(self.request))
+        return OkResponse.from_response_data(await playground.measurement(self.request))
 
     def param(self) -> str:
         return "white, black, playtime"

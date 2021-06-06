@@ -18,7 +18,7 @@ from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 from presentation.response import (
     CreatedGameResponse,
-    CreatedMesurementResponse,
+    CreatedMeasurementResponse,
     CreatedTrajectoryResponse,
     ExceptionHandledResponse,
 )
@@ -62,6 +62,7 @@ async def trajectory(request: PlayerTrajectoryRequest) -> JSONResponse:
 
 @router.post(
     "/game",
+    name="game",
     description="Trajactory from starting FEN to end",
     status_code=status.HTTP_200_OK,
     response_model=PlayerGameResponse,
@@ -72,11 +73,12 @@ async def game(request: PlayerGameRequest) -> JSONResponse:
 
 
 @router.post(
-    "/mesurement",
-    description="Mesurement of win/lose/draw when playing white",
+    "/measurement",
+    name="meaasurment",
+    description="Measurement of win/lose/draw when playing white",
     status_code=status.HTTP_200_OK,
     response_model=PlayerMeasurementResponse,
     responses={**responses},
 )
-async def mesurement(request: PlayerMeasurementRequest) -> JSONResponse:
-    return await ExceptionHandledResponse(CreatedMesurementResponse(request)).handled(playground)
+async def measurement(request: PlayerMeasurementRequest) -> JSONResponse:
+    return await ExceptionHandledResponse(CreatedMeasurementResponse(request)).handled(playground)

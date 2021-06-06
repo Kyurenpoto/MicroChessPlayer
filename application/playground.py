@@ -30,5 +30,5 @@ class MicroChessPlayGround(NamedTuple):
     async def game(self, request: PlayerGameRequest) -> PlayerGameResponse:
         return await self.player.game(request)
 
-    async def mesurement(self, request: PlayerMeasurementRequest) -> PlayerMeasurementResponse:
+    async def measurement(self, request: PlayerMeasurementRequest) -> PlayerMeasurementResponse:
         return await self.player.measurement(request)

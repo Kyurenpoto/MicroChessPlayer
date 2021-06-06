@@ -6,7 +6,7 @@ import pytest
 
 from domain.dto.playerdto import (
     PlayerAIInfo,
-    PlayerAIMesurement,
+    PlayerAIMeasurement,
     PlayerGameRequest,
     PlayerGameResponse,
     PlayerMeasurementRequest,
@@ -46,6 +46,6 @@ async def test_measurement() -> None:
             white=PlayerAIInfo(url="http://test"), black=PlayerAIInfo(url="http://test"), playtime=3
         )
     ) == PlayerMeasurementResponse(
-        white=PlayerAIMesurement(score=1.5, win=1, draw=1, lose=1),
-        black=PlayerAIMesurement(score=1.5, win=1, draw=1, lose=1),
+        white=PlayerAIMeasurement(score=1.5, win=1, draw=1, lose=1),
+        black=PlayerAIMeasurement(score=1.5, win=1, draw=1, lose=1),
     )

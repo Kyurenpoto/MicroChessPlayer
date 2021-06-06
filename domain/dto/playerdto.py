@@ -135,7 +135,7 @@ class PlayerMeasurementRequest(BaseModel):
     )
 
 
-class PlayerAIMesurement(BaseModel):
+class PlayerAIMeasurement(BaseModel):
     score: int = Field(
         ...,
         description="Measured score",
@@ -159,11 +159,11 @@ class PlayerAIMesurement(BaseModel):
 
 
 class PlayerMeasurementResponse(BaseModel):
-    white: PlayerAIMesurement = Field(
+    white: PlayerAIMeasurement = Field(
         ...,
         description="Measurement of white-side AI",
     )
-    black: PlayerAIMesurement = Field(
+    black: PlayerAIMeasurement = Field(
         ...,
         description="Measurement of black-side AI",
     )
