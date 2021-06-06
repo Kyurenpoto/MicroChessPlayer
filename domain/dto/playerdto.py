@@ -10,6 +10,17 @@ from pydantic import AnyHttpUrl, BaseModel
 from pydantic.fields import Field
 
 
+class PlayerLink(BaseModel):
+    rel: str = Field(
+        ...,
+        description="Relationship with current API",
+    )
+    href: str = Field(
+        ...,
+        description="URL of API",
+    )
+
+
 class PlayerAIInfo(BaseModel):
     url: AnyHttpUrl = Field(
         ...,
@@ -58,6 +69,10 @@ class PlayerTrajectoryResponse(BaseModel):
         ...,
         description="List of results in trajectories",
         example=[[0, 0], [0, 1]],
+    )
+    links: list[PlayerLink] = Field(
+        ...,
+        description="HATEOAS information",
     )
 
 
@@ -116,6 +131,10 @@ class PlayerGameResponse(BaseModel):
         description="Result of episode",
         example="1/2-1/2",
     )
+    links: list[PlayerLink] = Field(
+        ...,
+        description="HATEOAS information",
+    )
 
 
 class PlayerMeasurementRequest(BaseModel):
@@ -167,6 +186,10 @@ class PlayerMeasurementResponse(BaseModel):
         ...,
         description="Measurement of black-side AI",
     )
+    links: list[PlayerLink] = Field(
+        ...,
+        description="HATEOAS information",
+    )
 
 
 class PlayerErrorResponse(BaseModel):
@@ -193,4 +216,8 @@ class PlayerErrorResponse(BaseModel):
     error: str = Field(
         ...,
         description="Error type",
+    )
+    links: list[PlayerLink] = Field(
+        ...,
+        description="HATEOAS information",
     )

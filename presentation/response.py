@@ -15,6 +15,7 @@ from domain.dto.playerdto import (
     PlayerMeasurementRequest,
     PlayerTrajectoryRequest,
 )
+from domain.implementation.generatedlinks import GeneratedLinks
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
@@ -61,7 +62,11 @@ class RateRequestData(NamedTuple):
 
 class ICreatedResponse(metaclass=ABCMeta):
     @abstractmethod
-    async def created(self, playground: Optional[MicroChessPlayGround]) -> JSONResponse:
+    async def created(self, playground: Optional[MicroChessPlayGround], host: str) -> JSONResponse:
+        pass
+
+    @abstractmethod
+    def name(self) -> str:
         pass
 
     @abstractmethod
@@ -80,8 +85,11 @@ class ICreatedResponse(metaclass=ABCMeta):
 
 
 class CreatedTrajectoryResponse(TrajectoryRequestData, ICreatedResponse):
-    async def created(self, playground: Optional[MicroChessPlayGround]) -> JSONResponse:
-        return OkResponse.from_response_data(await playground.trajectory(self.request))
+    async def created(self, playground: Optional[MicroChessPlayGround], host: str) -> JSONResponse:
+        return OkResponse.from_response_data(await playground.trajectory(self.request, host))
+
+    def name(self) -> str:
+        return "trajectory"
 
     def param(self) -> str:
         return "fens, white, black, step"
@@ -97,8 +105,11 @@ class CreatedTrajectoryResponse(TrajectoryRequestData, ICreatedResponse):
 
 
 class CreatedGameResponse(GameRequestData, ICreatedResponse):
-    async def created(self, playground: Optional[MicroChessPlayGround]) -> JSONResponse:
-        return OkResponse.from_response_data(await playground.game(self.request))
+    async def created(self, playground: Optional[MicroChessPlayGround], host: str) -> JSONResponse:
+        return OkResponse.from_response_data(await playground.game(self.request, host))
+
+    def name(self) -> str:
+        return "game"
 
     def param(self) -> str:
         return "white, black"
@@ -114,8 +125,11 @@ class CreatedGameResponse(GameRequestData, ICreatedResponse):
 
 
 class CreatedMeasurementResponse(RateRequestData, ICreatedResponse):
-    async def created(self, playground: Optional[MicroChessPlayGround]) -> JSONResponse:
-        return OkResponse.from_response_data(await playground.measurement(self.request))
+    async def created(self, playground: Optional[MicroChessPlayGround], host: str) -> JSONResponse:
+        return OkResponse.from_response_data(await playground.measurement(self.request, host))
+
+    def name(self) -> str:
+        return "measurement"
 
     def param(self) -> str:
         return "white, black, playtime"
@@ -133,9 +147,9 @@ class CreatedMeasurementResponse(RateRequestData, ICreatedResponse):
 class ExceptionHandledResponse(NamedTuple):
     created: ICreatedResponse
 
-    async def handled(self, playground: Optional[MicroChessPlayGround]) -> JSONResponse:
+    async def handled(self, playground: Optional[MicroChessPlayGround], host: str) -> JSONResponse:
         try:
-            return await self.created.created(playground)
+            return await self.created.created(playground, host)
         except InvalidURL as ex:
             return BadRequestResponse.from_response_data(
                 PlayerErrorResponse(
@@ -144,6 +158,9 @@ class ExceptionHandledResponse(NamedTuple):
                     param=self.created.param(),
                     value=self.created.value(),
                     error="request.InvalidURL",
+                    links=GeneratedLinks.from_host_with_apis_requested(
+                        host, playground.player.apis, self.created.name()
+                    ),
                 )
             )
         except RequestError as ex:
@@ -154,6 +171,9 @@ class ExceptionHandledResponse(NamedTuple):
                     param=self.created.param(),
                     value=self.created.value(),
                     error="request.RequestError",
+                    links=GeneratedLinks.from_host_with_apis_requested(
+                        host, playground.player.apis, self.created.name()
+                    ),
                 )
             )
         except HTTPStatusError as ex:
@@ -167,5 +187,8 @@ class ExceptionHandledResponse(NamedTuple):
                     param=self.created.param(),
                     value=self.created.value(),
                     error="request.HTTPStatusError",
+                    links=GeneratedLinks.from_host_with_apis_requested(
+                        host, playground.player.apis, self.created.name()
+                    ),
                 )
             )

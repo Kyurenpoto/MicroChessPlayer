@@ -15,6 +15,7 @@ from domain.dto.playerdto import (
     PlayerTrajectoryResponse,
 )
 from fastapi import APIRouter, status
+from fastapi.params import Header
 from fastapi.responses import JSONResponse
 from presentation.response import (
     CreatedGameResponse,
@@ -30,10 +31,10 @@ playground: Optional[MicroChessPlayGround] = None
 def setting(url_env: str) -> None:
     global playground
 
-    playground = MicroChessPlayGround.from_url(url_env)
+    playground = MicroChessPlayGround.from_url(url_env, {route.name: route.path for route in router.routes})
 
 
-responses = {
+responses: dict[int, dict] = {
     status.HTTP_400_BAD_REQUEST: {
         "model": PlayerErrorResponse,
         "description": "Requested with invalid url",
@@ -51,13 +52,14 @@ responses = {
 
 @router.post(
     "/trajectory",
+    name="trajectory",
     description="Trajactory starting with the requested FEN",
     status_code=status.HTTP_200_OK,
     response_model=PlayerTrajectoryResponse,
     responses={**responses},
 )
-async def trajectory(request: PlayerTrajectoryRequest) -> JSONResponse:
-    return await ExceptionHandledResponse(CreatedTrajectoryResponse(request)).handled(playground)
+async def trajectory(request: PlayerTrajectoryRequest, host: str = Header(...)) -> JSONResponse:
+    return await ExceptionHandledResponse(CreatedTrajectoryResponse(request)).handled(playground, host)
 
 
 @router.post(
@@ -68,8 +70,8 @@ async def trajectory(request: PlayerTrajectoryRequest) -> JSONResponse:
     response_model=PlayerGameResponse,
     responses={**responses},
 )
-async def game(request: PlayerGameRequest) -> JSONResponse:
-    return await ExceptionHandledResponse(CreatedGameResponse(request)).handled(playground)
+async def game(request: PlayerGameRequest, host: str = Header(...)) -> JSONResponse:
+    return await ExceptionHandledResponse(CreatedGameResponse(request)).handled(playground, host)
 
 
 @router.post(
@@ -80,5 +82,5 @@ async def game(request: PlayerGameRequest) -> JSONResponse:
     response_model=PlayerMeasurementResponse,
     responses={**responses},
 )
-async def measurement(request: PlayerMeasurementRequest) -> JSONResponse:
-    return await ExceptionHandledResponse(CreatedMeasurementResponse(request)).handled(playground)
+async def measurement(request: PlayerMeasurementRequest, host: str = Header(...)) -> JSONResponse:
+    return await ExceptionHandledResponse(CreatedMeasurementResponse(request)).handled(playground, host)

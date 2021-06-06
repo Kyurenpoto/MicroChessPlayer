@@ -21,14 +21,14 @@ class MicroChessPlayGround(NamedTuple):
     player: MicroChessPlayer
 
     @classmethod
-    def from_url(cls, url_env: str) -> MicroChessPlayGround:
-        return MicroChessPlayGround(MicroChessPlayer.from_url(url_env))
+    def from_url(cls, url_env: str, apis: dict[str, str]) -> MicroChessPlayGround:
+        return MicroChessPlayGround(MicroChessPlayer.from_url(url_env, apis))
 
-    async def trajectory(self, request: PlayerTrajectoryRequest) -> PlayerTrajectoryResponse:
-        return await self.player.trajectory(request)
+    async def trajectory(self, request: PlayerTrajectoryRequest, host: str) -> PlayerTrajectoryResponse:
+        return await self.player.trajectory(request, host)
 
-    async def game(self, request: PlayerGameRequest) -> PlayerGameResponse:
-        return await self.player.game(request)
+    async def game(self, request: PlayerGameRequest, host: str) -> PlayerGameResponse:
+        return await self.player.game(request, host)
 
-    async def measurement(self, request: PlayerMeasurementRequest) -> PlayerMeasurementResponse:
-        return await self.player.measurement(request)
+    async def measurement(self, request: PlayerMeasurementRequest, host: str) -> PlayerMeasurementResponse:
+        return await self.player.measurement(request, host)

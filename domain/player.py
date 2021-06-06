@@ -17,6 +17,7 @@ from domain.dto.playerdto import (
     PlayerTrajectoryResponse,
 )
 from domain.implementation.game import FakeGame, Game, IGame
+from domain.implementation.generatedlinks import GeneratedLinks
 from domain.implementation.measurement import FakeMeasurement, IMeasurement, Measurement
 from domain.implementation.trace import Trace
 from domain.implementation.trajectory import FakeTrajectory, ITrajectory, Trajectory
@@ -58,61 +59,97 @@ class FakeService(IService):
         return FakeMeasurement()
 
 
-class Results(list[float]):
-    def __str__(self) -> str:
-        if self[-1] == 0.5:
-            return "1/2-1/2"
+class Score(str):
+    @classmethod
+    def from_results(cls, results: list[float]) -> Score:
+        if results[-1] == 0.5:
+            return Score.draw()
 
-        return "1-0" if len(self) % 2 == 1 else "0-1"
+        return Score.white_win() if len(results) % 2 == 1 else Score.black_win()
+
+    @classmethod
+    def white_win(cls) -> Score:
+        return Score("1-0")
+
+    @classmethod
+    def black_win(cls) -> Score:
+        return Score("0-1")
+
+    @classmethod
+    def draw(cls) -> Score:
+        return Score("1/2-1/2")
 
 
-class Statistics(dict[str, int]):
+class Statistics(dict[Score, int]):
     @classmethod
     def from_traces(cls, traces: Iterable[Trace]) -> Statistics:
-        results: list[str] = [str(Results(trace.results[0])) for trace in traces]
+        results: list[Score] = [Score.from_results(trace.results[0]) for trace in traces]
 
         return Statistics(
-            {"1-0": results.count("1-0"), "0-1": results.count("0-1"), "1/2-1/2": results.count("1/2-1/2")}
+            {
+                Score.white_win(): results.count(Score.white_win()),
+                Score.black_win(): results.count(Score.black_win()),
+                Score.draw(): results.count(Score.draw()),
+            }
         )
 
     def white(self) -> PlayerAIMeasurement:
         return PlayerAIMeasurement(
-            score=(self["1-0"] + (self["1/2-1/2"] * 0.5)), win=self["1-0"], draw=self["1/2-1/2"], lose=self["0-1"]
+            score=(self[Score.white_win()] + (self[Score.draw()] * 0.5)),
+            win=self[Score.white_win()],
+            draw=self[Score.draw()],
+            lose=self[Score.black_win()],
         )
 
     def black(self) -> PlayerAIMeasurement:
         return PlayerAIMeasurement(
-            score=(self["0-1"] + (self["1/2-1/2"] * 0.5)), win=self["0-1"], draw=self["1/2-1/2"], lose=self["1-0"]
+            score=(self[Score.black_win()] + (self[Score.draw()] * 0.5)),
+            win=self[Score.black_win()],
+            draw=self[Score.draw()],
+            lose=self[Score.white_win()],
         )
 
 
 class MicroChessPlayer(NamedTuple):
     url_env: str
+    apis: dict[str, str]
     service: IService
 
     @classmethod
-    def from_url(cls, url_env: str) -> MicroChessPlayer:
-        return MicroChessPlayer(url_env, Service())
+    def from_url(cls, url_env: str, apis: dict[str, str]) -> MicroChessPlayer:
+        return MicroChessPlayer(url_env, apis, Service())
 
-    async def trajectory(self, request: PlayerTrajectoryRequest) -> PlayerTrajectoryResponse:
+    async def trajectory(self, request: PlayerTrajectoryRequest, host: str) -> PlayerTrajectoryResponse:
         produced: Trace = (
             await self.service.trajectory(self.url_env, request.white.url, request.black.url, request.step).produced(
                 request.fens
             )
         ).concatenated()
 
-        return PlayerTrajectoryResponse(fens=produced.fens, sans=produced.sans, results=produced.results)
+        return PlayerTrajectoryResponse(
+            fens=produced.fens,
+            sans=produced.sans,
+            results=produced.results,
+            links=GeneratedLinks.from_host_with_apis_requested(host, self.apis, "trajectory"),
+        )
 
-    async def game(self, request: PlayerGameRequest) -> PlayerGameResponse:
+    async def game(self, request: PlayerGameRequest, host: str) -> PlayerGameResponse:
         produced: Trace = await self.service.game(self.url_env, request.white.url, request.black.url).produced()
 
         return PlayerGameResponse(
-            fens=produced.fens[0], sans=produced.sans[0], result=str(Results(produced.results[0]))
+            fens=produced.fens[0],
+            sans=produced.sans[0],
+            result=Score.from_results(produced.results[0]),
+            links=GeneratedLinks.from_host_with_apis_requested(host, self.apis, "game"),
         )
 
-    async def measurement(self, request: PlayerMeasurementRequest) -> PlayerMeasurementResponse:
+    async def measurement(self, request: PlayerMeasurementRequest, host: str) -> PlayerMeasurementResponse:
         statistics: Statistics = Statistics.from_traces(
             await self.service.rate(self.url_env, request.white.url, request.black.url).produced(request.playtime)
         )
 
-        return PlayerMeasurementResponse(white=statistics.white(), black=statistics.black())
+        return PlayerMeasurementResponse(
+            white=statistics.white(),
+            black=statistics.black(),
+            links=GeneratedLinks.from_host_with_apis_requested(host, self.apis, "measurement"),
+        )
