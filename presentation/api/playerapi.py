@@ -15,7 +15,6 @@ from domain.dto.playerdto import (
     PlayerTrajectoryResponse,
 )
 from fastapi import APIRouter, status
-from fastapi.params import Header
 from fastapi.responses import JSONResponse
 from presentation.response import (
     CreatedGameResponse,
@@ -58,8 +57,8 @@ responses: dict[int, dict] = {
     response_model=PlayerTrajectoryResponse,
     responses={**responses},
 )
-async def trajectory(request: PlayerTrajectoryRequest, host: str = Header(...)) -> JSONResponse:
-    return await ExceptionHandledResponse(CreatedTrajectoryResponse(request)).handled(playground, host)
+async def trajectory(request: PlayerTrajectoryRequest) -> JSONResponse:
+    return await ExceptionHandledResponse(CreatedTrajectoryResponse(request)).handled(playground)
 
 
 @router.post(
@@ -70,8 +69,8 @@ async def trajectory(request: PlayerTrajectoryRequest, host: str = Header(...)) 
     response_model=PlayerGameResponse,
     responses={**responses},
 )
-async def game(request: PlayerGameRequest, host: str = Header(...)) -> JSONResponse:
-    return await ExceptionHandledResponse(CreatedGameResponse(request)).handled(playground, host)
+async def game(request: PlayerGameRequest) -> JSONResponse:
+    return await ExceptionHandledResponse(CreatedGameResponse(request)).handled(playground)
 
 
 @router.post(
@@ -82,5 +81,5 @@ async def game(request: PlayerGameRequest, host: str = Header(...)) -> JSONRespo
     response_model=PlayerMeasurementResponse,
     responses={**responses},
 )
-async def measurement(request: PlayerMeasurementRequest, host: str = Header(...)) -> JSONResponse:
-    return await ExceptionHandledResponse(CreatedMeasurementResponse(request)).handled(playground, host)
+async def measurement(request: PlayerMeasurementRequest) -> JSONResponse:
+    return await ExceptionHandledResponse(CreatedMeasurementResponse(request)).handled(playground)

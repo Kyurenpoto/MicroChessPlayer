@@ -5,55 +5,47 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import Any, NamedTuple, Optional, Union
+from typing import NamedTuple, Optional, Union
 
 from application.playground import MicroChessPlayGround
 from domain.dto.playerdto import (
     PlayerAIInfo,
     PlayerErrorResponse,
     PlayerGameRequest,
+    PlayerHAL,
     PlayerMeasurementRequest,
     PlayerTrajectoryRequest,
 )
-from domain.implementation.generatedlinks import GeneratedLinks
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from httpx import HTTPStatusError, InvalidURL, RequestError
 
 
-class HALJSONResponse(JSONResponse):
-    media_type = "application/hal+json"
-
-
-class HALJSON(dict):
+class OkResponse(JSONResponse):
     @classmethod
-    def from_data_with_links(cls, data, links: dict[str, dict[str, str]]) -> HALJSON:
-        return HALJSON({**jsonable_encoder(data), "_links": links})
+    def from_response_data(cls, data) -> OkResponse:
+        return OkResponse(content=jsonable_encoder(data))
 
 
-class OkResponse(HALJSONResponse):
+class BadRequestResponse(JSONResponse):
     @classmethod
-    def from_response_data(cls, haljson: HALJSON) -> OkResponse:
-        return OkResponse(content=haljson)
+    def from_response_data(cls, data) -> BadRequestResponse:
+        return BadRequestResponse(status_code=status.HTTP_400_BAD_REQUEST, content=jsonable_encoder(data))
 
 
-class BadRequestResponse(HALJSONResponse):
+class NotFoundResponse(JSONResponse):
     @classmethod
-    def from_response_data(cls, haljson: HALJSON) -> BadRequestResponse:
-        return BadRequestResponse(status_code=status.HTTP_400_BAD_REQUEST, content=haljson)
+    def from_response_data(cls, data) -> NotFoundResponse:
+        return NotFoundResponse(status_code=status.HTTP_404_NOT_FOUND, content=jsonable_encoder(data))
 
 
-class NotFoundResponse(HALJSONResponse):
+class UnprocessableEntityResponse(JSONResponse):
     @classmethod
-    def from_response_data(cls, haljson: HALJSON) -> NotFoundResponse:
-        return NotFoundResponse(status_code=status.HTTP_404_NOT_FOUND, content=haljson)
-
-
-class UnprocessableEntityResponse(HALJSONResponse):
-    @classmethod
-    def from_response_data(cls, haljson: HALJSON) -> UnprocessableEntityResponse:
-        return UnprocessableEntityResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=haljson)
+    def from_response_data(cls, data) -> UnprocessableEntityResponse:
+        return UnprocessableEntityResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=jsonable_encoder(data)
+        )
 
 
 class TrajectoryRequestData(NamedTuple):
@@ -70,7 +62,7 @@ class RateRequestData(NamedTuple):
 
 class ICreatedResponse(metaclass=ABCMeta):
     @abstractmethod
-    async def created(self, playground: Optional[MicroChessPlayGround], host: str) -> HALJSON:
+    async def created(self, playground: Optional[MicroChessPlayGround]) -> OkResponse:
         pass
 
     @abstractmethod
@@ -93,11 +85,8 @@ class ICreatedResponse(metaclass=ABCMeta):
 
 
 class CreatedTrajectoryResponse(TrajectoryRequestData, ICreatedResponse):
-    async def created(self, playground: Optional[MicroChessPlayGround], host: str) -> HALJSON:
-        return HALJSON.from_data_with_links(
-            await playground.trajectory(self.request),
-            GeneratedLinks.from_host_with_apis_requested(host, playground.player.apis, self.name()),
-        )
+    async def created(self, playground: Optional[MicroChessPlayGround]) -> OkResponse:
+        return OkResponse.from_response_data(await playground.trajectory(self.request))
 
     def name(self) -> str:
         return "trajectory"
@@ -116,11 +105,8 @@ class CreatedTrajectoryResponse(TrajectoryRequestData, ICreatedResponse):
 
 
 class CreatedGameResponse(GameRequestData, ICreatedResponse):
-    async def created(self, playground: Optional[MicroChessPlayGround], host: str) -> HALJSON:
-        return HALJSON.from_data_with_links(
-            await playground.game(self.request),
-            GeneratedLinks.from_host_with_apis_requested(host, playground.player.apis, self.name()),
-        )
+    async def created(self, playground: Optional[MicroChessPlayGround]) -> OkResponse:
+        return OkResponse.from_response_data(await playground.game(self.request))
 
     def name(self) -> str:
         return "game"
@@ -139,11 +125,8 @@ class CreatedGameResponse(GameRequestData, ICreatedResponse):
 
 
 class CreatedMeasurementResponse(RateRequestData, ICreatedResponse):
-    async def created(self, playground: Optional[MicroChessPlayGround], host: str) -> HALJSON:
-        return HALJSON.from_data_with_links(
-            await playground.measurement(self.request),
-            GeneratedLinks.from_host_with_apis_requested(host, playground.player.apis, self.name()),
-        )
+    async def created(self, playground: Optional[MicroChessPlayGround]) -> OkResponse:
+        return OkResponse.from_response_data(await playground.measurement(self.request))
 
     def name(self) -> str:
         return "measurement"
@@ -164,48 +147,42 @@ class CreatedMeasurementResponse(RateRequestData, ICreatedResponse):
 class ExceptionHandledResponse(NamedTuple):
     created: ICreatedResponse
 
-    async def handled(self, playground: Optional[MicroChessPlayGround], host: str) -> JSONResponse:
+    async def handled(self, playground: Optional[MicroChessPlayGround]) -> JSONResponse:
         try:
-            return OkResponse.from_response_data(await self.created.created(playground, host))
+            return await self.created.created(playground)
         except InvalidURL as ex:
             return BadRequestResponse.from_response_data(
-                HALJSON.from_data_with_links(
-                    PlayerErrorResponse(
-                        message=f"Requested with invalid url: {ex.args[0]!r}",
-                        location="body",
-                        param=self.created.param(),
-                        value=self.created.value(),
-                        error="request.InvalidURL",
-                    ),
-                    GeneratedLinks.from_host_with_apis_requested(host, playground.player.apis, self.created.name()),
-                )
+                PlayerErrorResponse(
+                    links=PlayerHAL.from_with_apis_requested(playground.player.apis, self.created.name()).links,
+                    message=f"Requested with invalid url: {ex.args[0]!r}",
+                    location="body",
+                    param=self.created.param(),
+                    value=self.created.value(),
+                    error="request.InvalidURL",
+                ),
             )
         except RequestError as ex:
             return NotFoundResponse.from_response_data(
-                HALJSON.from_data_with_links(
-                    PlayerErrorResponse(
-                        message=f"An error occurred while requesting {ex.request.url!r}: {ex.args[0]!r}",
-                        location="body",
-                        param=self.created.param(),
-                        value=self.created.value(),
-                        error="request.RequestError",
-                    ),
-                    GeneratedLinks.from_host_with_apis_requested(host, playground.player.apis, self.created.name()),
-                )
+                PlayerErrorResponse(
+                    links=PlayerHAL.from_with_apis_requested(playground.player.apis, self.created.name()).links,
+                    message=f"An error occurred while requesting {ex.request.url!r}: {ex.args[0]!r}",
+                    location="body",
+                    param=self.created.param(),
+                    value=self.created.value(),
+                    error="request.RequestError",
+                ),
             )
         except HTTPStatusError as ex:
             return UnprocessableEntityResponse.from_response_data(
-                HALJSON.from_data_with_links(
-                    PlayerErrorResponse(
-                        message=(
-                            f"Error response {ex.response.status_code} "
-                            + f"while requesting {ex.request.url!r}: {ex.response.json()!r}"
-                        ),
-                        location="body",
-                        param=self.created.param(),
-                        value=self.created.value(),
-                        error="request.HTTPStatusError",
+                PlayerErrorResponse(
+                    links=PlayerHAL.from_with_apis_requested(playground.player.apis, self.created.name()).links,
+                    message=(
+                        f"Error response {ex.response.status_code} "
+                        + f"while requesting {ex.request.url!r}: {ex.response.json()!r}"
                     ),
-                    GeneratedLinks.from_host_with_apis_requested(host, playground.player.apis, self.created.name()),
-                )
+                    location="body",
+                    param=self.created.param(),
+                    value=self.created.value(),
+                    error="request.HTTPStatusError",
+                ),
             )
