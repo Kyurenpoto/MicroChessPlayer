@@ -76,7 +76,7 @@ async def game(request: PlayerGameRequest, host: str = Header(...)) -> JSONRespo
 
 @router.post(
     "/measurement",
-    name="meaasurment",
+    name="measurment",
     description="Measurement of win/lose/draw when playing white",
     status_code=status.HTTP_200_OK,
     response_model=PlayerMeasurementResponse,

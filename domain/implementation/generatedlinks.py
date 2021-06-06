@@ -4,17 +4,19 @@
 
 from __future__ import annotations
 
-from domain.dto.playerdto import PlayerLink
 
-
-class GeneratedLinks(list[PlayerLink]):
+class GeneratedLinks(dict[str, dict[str, str]]):
     @classmethod
     def from_host_with_apis(cls, host: str, apis: dict[str, str]) -> GeneratedLinks:
-        return GeneratedLinks([PlayerLink(rel=rel, href=("http://" + host + api)) for rel, api in apis.items()])
+        return GeneratedLinks({rel: {"href": ("http://" + host + api)} for rel, api in apis.items()})
 
     @classmethod
     def from_host_with_apis_requested(cls, host: str, apis: dict[str, str], requested: str) -> GeneratedLinks:
         return GeneratedLinks(
-            [PlayerLink(rel="self", href=("http://" + host + apis[requested]))]
-            + GeneratedLinks.from_host_with_apis(host, apis)
+            {
+                "self": {"href": ("http://" + host + apis[requested])},
+                "profile": {"href": ("http://" + host + "/docs")},
+                "profile2": {"href": ("http://" + host + "/redoc")},
+                **GeneratedLinks.from_host_with_apis(host, apis),
+            }
         )

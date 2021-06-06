@@ -17,7 +17,6 @@ from domain.dto.playerdto import (
     PlayerTrajectoryResponse,
 )
 from domain.implementation.game import FakeGame, Game, IGame
-from domain.implementation.generatedlinks import GeneratedLinks
 from domain.implementation.measurement import FakeMeasurement, IMeasurement, Measurement
 from domain.implementation.trace import Trace
 from domain.implementation.trajectory import FakeTrajectory, ITrajectory, Trajectory
@@ -119,7 +118,7 @@ class MicroChessPlayer(NamedTuple):
     def from_url(cls, url_env: str, apis: dict[str, str]) -> MicroChessPlayer:
         return MicroChessPlayer(url_env, apis, Service())
 
-    async def trajectory(self, request: PlayerTrajectoryRequest, host: str) -> PlayerTrajectoryResponse:
+    async def trajectory(self, request: PlayerTrajectoryRequest) -> PlayerTrajectoryResponse:
         produced: Trace = (
             await self.service.trajectory(self.url_env, request.white.url, request.black.url, request.step).produced(
                 request.fens
@@ -130,20 +129,18 @@ class MicroChessPlayer(NamedTuple):
             fens=produced.fens,
             sans=produced.sans,
             results=produced.results,
-            links=GeneratedLinks.from_host_with_apis_requested(host, self.apis, "trajectory"),
         )
 
-    async def game(self, request: PlayerGameRequest, host: str) -> PlayerGameResponse:
+    async def game(self, request: PlayerGameRequest) -> PlayerGameResponse:
         produced: Trace = await self.service.game(self.url_env, request.white.url, request.black.url).produced()
 
         return PlayerGameResponse(
             fens=produced.fens[0],
             sans=produced.sans[0],
             result=Score.from_results(produced.results[0]),
-            links=GeneratedLinks.from_host_with_apis_requested(host, self.apis, "game"),
         )
 
-    async def measurement(self, request: PlayerMeasurementRequest, host: str) -> PlayerMeasurementResponse:
+    async def measurement(self, request: PlayerMeasurementRequest) -> PlayerMeasurementResponse:
         statistics: Statistics = Statistics.from_traces(
             await self.service.rate(self.url_env, request.white.url, request.black.url).produced(request.playtime)
         )
@@ -151,5 +148,4 @@ class MicroChessPlayer(NamedTuple):
         return PlayerMeasurementResponse(
             white=statistics.white(),
             black=statistics.black(),
-            links=GeneratedLinks.from_host_with_apis_requested(host, self.apis, "measurement"),
         )
