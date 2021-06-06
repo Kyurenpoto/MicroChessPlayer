@@ -6,6 +6,7 @@ from typing import Optional
 
 from application.playground import MicroChessPlayGround
 from domain.dto.playerdto import (
+    PlayerErrorResponse,
     PlayerGameRequest,
     PlayerGameResponse,
     PlayerMeasurementRequest,
@@ -13,7 +14,7 @@ from domain.dto.playerdto import (
     PlayerTrajectoryRequest,
     PlayerTrajectoryResponse,
 )
-from fastapi import APIRouter, Body, status
+from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 from presentation.response import (
     CreatedGameResponse,
@@ -32,11 +33,28 @@ def setting(url_env: str) -> None:
     playground = MicroChessPlayGround.from_url(url_env)
 
 
+responses = {
+    status.HTTP_400_BAD_REQUEST: {
+        "model": PlayerErrorResponse,
+        "description": "Requested with invalid url",
+    },
+    status.HTTP_404_NOT_FOUND: {
+        "model": PlayerErrorResponse,
+        "description": "An error occured while requesting",
+    },
+    status.HTTP_422_UNPROCESSABLE_ENTITY: {
+        "model": PlayerErrorResponse,
+        "description": "Received a response with a failed status",
+    },
+}
+
+
 @router.post(
     "/trajectory",
     description="Trajactory starting with the requested FEN",
     status_code=status.HTTP_200_OK,
     response_model=PlayerTrajectoryResponse,
+    responses={**responses},
 )
 async def trajectory(request: PlayerTrajectoryRequest) -> JSONResponse:
     return await ExceptionHandledResponse(CreatedTrajectoryResponse(request)).handled(playground)
@@ -47,6 +65,7 @@ async def trajectory(request: PlayerTrajectoryRequest) -> JSONResponse:
     description="Trajactory from starting FEN to end",
     status_code=status.HTTP_200_OK,
     response_model=PlayerGameResponse,
+    responses={**responses},
 )
 async def game(request: PlayerGameRequest) -> JSONResponse:
     return await ExceptionHandledResponse(CreatedGameResponse(request)).handled(playground)
@@ -57,6 +76,7 @@ async def game(request: PlayerGameRequest) -> JSONResponse:
     description="Mesurement of win/lose/draw when playing white",
     status_code=status.HTTP_200_OK,
     response_model=PlayerMeasurementResponse,
+    responses={**responses},
 )
 async def mesurement(request: PlayerMeasurementRequest) -> JSONResponse:
     return await ExceptionHandledResponse(CreatedMesurementResponse(request)).handled(playground)
