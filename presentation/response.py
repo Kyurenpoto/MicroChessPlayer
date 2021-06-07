@@ -21,25 +21,29 @@ from fastapi.responses import JSONResponse
 from httpx import HTTPStatusError, InvalidURL, RequestError
 
 
-class OkResponse(JSONResponse):
+class HALJSONResponse(JSONResponse):
+    media_type = "application/hal+json"
+
+
+class OkResponse(HALJSONResponse):
     @classmethod
     def from_response_data(cls, data) -> OkResponse:
         return OkResponse(content=jsonable_encoder(data))
 
 
-class BadRequestResponse(JSONResponse):
+class BadRequestResponse(HALJSONResponse):
     @classmethod
     def from_response_data(cls, data) -> BadRequestResponse:
         return BadRequestResponse(status_code=status.HTTP_400_BAD_REQUEST, content=jsonable_encoder(data))
 
 
-class NotFoundResponse(JSONResponse):
+class NotFoundResponse(HALJSONResponse):
     @classmethod
     def from_response_data(cls, data) -> NotFoundResponse:
         return NotFoundResponse(status_code=status.HTTP_404_NOT_FOUND, content=jsonable_encoder(data))
 
 
-class UnprocessableEntityResponse(JSONResponse):
+class UnprocessableEntityResponse(HALJSONResponse):
     @classmethod
     def from_response_data(cls, data) -> UnprocessableEntityResponse:
         return UnprocessableEntityResponse(
@@ -117,7 +121,7 @@ class CreatedMeasurementResponse(RateRequestData, ICreatedResponse):
 class ExceptionHandledResponse(NamedTuple):
     created: ICreatedResponse
 
-    async def handled(self, playground: Optional[MicroChessPlayGround]) -> JSONResponse:
+    async def handled(self, playground: Optional[MicroChessPlayGround]) -> HALJSONResponse:
         try:
             return await self.created.created(playground)
         except InvalidURL as ex:

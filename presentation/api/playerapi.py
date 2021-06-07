@@ -15,12 +15,12 @@ from domain.dto.playerdto import (
     PlayerTrajectoryResponse,
 )
 from fastapi import APIRouter, status
-from fastapi.responses import JSONResponse
 from presentation.response import (
     CreatedGameResponse,
     CreatedMeasurementResponse,
     CreatedTrajectoryResponse,
     ExceptionHandledResponse,
+    HALJSONResponse,
 )
 
 router: APIRouter = APIRouter(prefix="/player")
@@ -57,7 +57,7 @@ responses: dict[int, dict] = {
     response_model=PlayerTrajectoryResponse,
     responses={**responses},
 )
-async def trajectory(request: PlayerTrajectoryRequest) -> JSONResponse:
+async def trajectory(request: PlayerTrajectoryRequest) -> HALJSONResponse:
     return await ExceptionHandledResponse(CreatedTrajectoryResponse(request)).handled(playground)
 
 
@@ -69,7 +69,7 @@ async def trajectory(request: PlayerTrajectoryRequest) -> JSONResponse:
     response_model=PlayerGameResponse,
     responses={**responses},
 )
-async def game(request: PlayerGameRequest) -> JSONResponse:
+async def game(request: PlayerGameRequest) -> HALJSONResponse:
     return await ExceptionHandledResponse(CreatedGameResponse(request)).handled(playground)
 
 
@@ -81,5 +81,5 @@ async def game(request: PlayerGameRequest) -> JSONResponse:
     response_model=PlayerMeasurementResponse,
     responses={**responses},
 )
-async def measurement(request: PlayerMeasurementRequest) -> JSONResponse:
+async def measurement(request: PlayerMeasurementRequest) -> HALJSONResponse:
     return await ExceptionHandledResponse(CreatedMeasurementResponse(request)).handled(playground)
