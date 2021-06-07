@@ -17,8 +17,8 @@ class PlayerHALLink(BaseModel):
     )
 
     @classmethod
-    def doc_link(cls, rel: str, api: str, profile_location: str) -> PlayerHALLink:
-        return PlayerHALLink(href=(profile_location + rel + api.replace("/", "_") + "_post"))
+    def doc_link(cls, rel: str, api: str, http_method: str, profile_location: str) -> PlayerHALLink:
+        return PlayerHALLink(href=profile_location + "_".join([rel] + api.split("/")[1:] + [http_method]))
 
 
 class PlayerHAL(BaseModel):
@@ -28,18 +28,17 @@ class PlayerHAL(BaseModel):
     )
 
     @classmethod
-    def from_with_apis(cls, apis: dict[str, str]) -> PlayerHAL:
+    def from_apis(cls, apis: dict[str, str]) -> PlayerHAL:
         return PlayerHAL(links={rel: PlayerHALLink(href=api) for rel, api in apis.items()})
 
     @classmethod
-    def from_with_apis_requested(cls, apis: dict[str, str], requested: str) -> PlayerHAL:
-        PlayerHAL(links={rel: PlayerHALLink(href=api) for rel, api in apis.items()})
+    def from_apis_with_requested(cls, apis: dict[str, str], requested: str, http_method) -> PlayerHAL:
         return PlayerHAL(
             links={
                 "self": PlayerHALLink(href=apis[requested]),
-                "profile": PlayerHALLink.doc_link(requested, apis[requested], "/docs#default/"),
-                "profile2": PlayerHALLink.doc_link(requested, apis[requested], "/redoc#operation/"),
-                **PlayerHAL.from_with_apis(apis).links,
+                "profile": PlayerHALLink.doc_link(requested, apis[requested], http_method, "/docs#default/"),
+                "profile2": PlayerHALLink.doc_link(requested, apis[requested], http_method, "/redoc#operation/"),
+                **PlayerHAL.from_apis(apis).links,
             }
         )
 

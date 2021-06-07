@@ -5,11 +5,10 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import NamedTuple, Optional, Union
+from typing import NamedTuple, Optional
 
 from application.playground import MicroChessPlayGround
 from domain.dto.playerdto import (
-    PlayerAIInfo,
     PlayerErrorResponse,
     PlayerGameRequest,
     PlayerHAL,
@@ -66,21 +65,7 @@ class ICreatedResponse(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def name(self) -> str:
-        pass
-
-    @abstractmethod
-    def param(self) -> str:
-        pass
-
-    @abstractmethod
-    def value(
-        self,
-    ) -> Union[
-        tuple[list[str], PlayerAIInfo, PlayerAIInfo, int],
-        tuple[PlayerAIInfo, PlayerAIInfo],
-        tuple[PlayerAIInfo, PlayerAIInfo, int],
-    ]:
+    def error(self, playground: Optional[MicroChessPlayGround], message: str, error_type: str) -> PlayerErrorResponse:
         pass
 
 
@@ -88,60 +73,45 @@ class CreatedTrajectoryResponse(TrajectoryRequestData, ICreatedResponse):
     async def created(self, playground: Optional[MicroChessPlayGround]) -> OkResponse:
         return OkResponse.from_response_data(await playground.trajectory(self.request))
 
-    def name(self) -> str:
-        return "trajectory"
-
-    def param(self) -> str:
-        return "fens, white, black, step"
-
-    def value(
-        self,
-    ) -> Union[
-        tuple[list[str], PlayerAIInfo, PlayerAIInfo, int],
-        tuple[PlayerAIInfo, PlayerAIInfo],
-        tuple[PlayerAIInfo, PlayerAIInfo, int],
-    ]:
-        return self.request.fens, self.request.white, self.request.black, self.request.step
+    def error(self, playground: Optional[MicroChessPlayGround], message: str, error_type: str) -> PlayerErrorResponse:
+        return PlayerErrorResponse(
+            links=PlayerHAL.from_apis_with_requested(playground.player.apis, "trajectory", "post").links,
+            message=message,
+            location="body",
+            param="fens, white, black, step",
+            value=(self.request.fens, self.request.white, self.request.black, self.request.step),
+            error=error_type,
+        )
 
 
 class CreatedGameResponse(GameRequestData, ICreatedResponse):
     async def created(self, playground: Optional[MicroChessPlayGround]) -> OkResponse:
         return OkResponse.from_response_data(await playground.game(self.request))
 
-    def name(self) -> str:
-        return "game"
-
-    def param(self) -> str:
-        return "white, black"
-
-    def value(
-        self,
-    ) -> Union[
-        tuple[list[str], PlayerAIInfo, PlayerAIInfo, int],
-        tuple[PlayerAIInfo, PlayerAIInfo],
-        tuple[PlayerAIInfo, PlayerAIInfo, int],
-    ]:
-        return self.request.white, self.request.black
+    def error(self, playground: Optional[MicroChessPlayGround], message: str, error_type: str) -> PlayerErrorResponse:
+        return PlayerErrorResponse(
+            links=PlayerHAL.from_apis_with_requested(playground.player.apis, "game", "post").links,
+            message=message,
+            location="body",
+            param="white, black",
+            value=(self.request.white, self.request.black),
+            error=error_type,
+        )
 
 
 class CreatedMeasurementResponse(RateRequestData, ICreatedResponse):
     async def created(self, playground: Optional[MicroChessPlayGround]) -> OkResponse:
         return OkResponse.from_response_data(await playground.measurement(self.request))
 
-    def name(self) -> str:
-        return "measurement"
-
-    def param(self) -> str:
-        return "white, black, playtime"
-
-    def value(
-        self,
-    ) -> Union[
-        tuple[list[str], PlayerAIInfo, PlayerAIInfo, int],
-        tuple[PlayerAIInfo, PlayerAIInfo],
-        tuple[PlayerAIInfo, PlayerAIInfo, int],
-    ]:
-        return self.request.white, self.request.black
+    def error(self, playground: Optional[MicroChessPlayGround], message: str, error_type: str) -> PlayerErrorResponse:
+        return PlayerErrorResponse(
+            links=PlayerHAL.from_apis_with_requested(playground.player.apis, "measurement", "post").links,
+            message=message,
+            location="body",
+            param="white, black, playtime",
+            value=(self.request.white, self.request.black, self.request.playtime),
+            error=error_type,
+        )
 
 
 class ExceptionHandledResponse(NamedTuple):
@@ -152,37 +122,22 @@ class ExceptionHandledResponse(NamedTuple):
             return await self.created.created(playground)
         except InvalidURL as ex:
             return BadRequestResponse.from_response_data(
-                PlayerErrorResponse(
-                    links=PlayerHAL.from_with_apis_requested(playground.player.apis, self.created.name()).links,
-                    message=f"Requested with invalid url: {ex.args[0]!r}",
-                    location="body",
-                    param=self.created.param(),
-                    value=self.created.value(),
-                    error="request.InvalidURL",
-                ),
+                self.created.error(playground, f"Requested with invalid url: {ex.args[0]!r}", "request.InvalidURL")
             )
         except RequestError as ex:
             return NotFoundResponse.from_response_data(
-                PlayerErrorResponse(
-                    links=PlayerHAL.from_with_apis_requested(playground.player.apis, self.created.name()).links,
-                    message=f"An error occurred while requesting {ex.request.url!r}: {ex.args[0]!r}",
-                    location="body",
-                    param=self.created.param(),
-                    value=self.created.value(),
-                    error="request.RequestError",
-                ),
+                self.created.error(
+                    playground,
+                    f"An error occurred while requesting {ex.request.url!r}: {ex.args[0]!r}",
+                    "request.RequestError",
+                )
             )
         except HTTPStatusError as ex:
             return UnprocessableEntityResponse.from_response_data(
-                PlayerErrorResponse(
-                    links=PlayerHAL.from_with_apis_requested(playground.player.apis, self.created.name()).links,
-                    message=(
-                        f"Error response {ex.response.status_code} "
-                        + f"while requesting {ex.request.url!r}: {ex.response.json()!r}"
-                    ),
-                    location="body",
-                    param=self.created.param(),
-                    value=self.created.value(),
-                    error="request.HTTPStatusError",
-                ),
+                self.created.error(
+                    playground,
+                    f"Error response {ex.response.status_code} "
+                    + f"while requesting {ex.request.url!r}: {ex.response.json()!r}",
+                    "request.HTTPStatusError",
+                )
             )

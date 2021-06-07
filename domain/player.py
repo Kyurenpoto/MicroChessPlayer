@@ -127,7 +127,7 @@ class MicroChessPlayer(NamedTuple):
         ).concatenated()
 
         return PlayerTrajectoryResponse(
-            links=PlayerHAL.from_with_apis_requested(self.apis, "trajectory").links,
+            links=PlayerHAL.from_apis_with_requested(self.apis, "trajectory", "post").links,
             fens=produced.fens,
             sans=produced.sans,
             results=produced.results,
@@ -137,7 +137,7 @@ class MicroChessPlayer(NamedTuple):
         produced: Trace = await self.service.game(self.url_env, request.white.url, request.black.url).produced()
 
         return PlayerGameResponse(
-            links=PlayerHAL.from_with_apis_requested(self.apis, "game").links,
+            links=PlayerHAL.from_apis_with_requested(self.apis, "game", "post").links,
             fens=produced.fens[0],
             sans=produced.sans[0],
             result=Score.from_results(produced.results[0]),
@@ -149,7 +149,7 @@ class MicroChessPlayer(NamedTuple):
         )
 
         return PlayerMeasurementResponse(
-            links=PlayerHAL.from_with_apis_requested(self.apis, "measurement").links,
+            links=PlayerHAL.from_apis_with_requested(self.apis, "measurement", "post").links,
             white=statistics.white(),
             black=statistics.black(),
         )
