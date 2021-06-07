@@ -15,6 +15,6 @@ class RequestedFENStatus(NamedTuple):
 
     @classmethod
     async def from_url_with_FENs(cls, url: str, fens: list[str]) -> RequestedFENStatus:
-        response = await PostClient(url + "/fen-status").post({"fens": fens})
+        response = await PostClient(url + "/model/fen-status").post({"fens": fens})
 
         return RequestedFENStatus(response["statuses"], response["legal_moves"])
