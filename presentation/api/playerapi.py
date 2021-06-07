@@ -13,6 +13,7 @@ from domain.dto.playerdto import (
     PlayerMeasurementResponse,
     PlayerTrajectoryRequest,
     PlayerTrajectoryResponse,
+    PlayerURL,
 )
 from fastapi import APIRouter, status
 from presentation.response import (
@@ -22,16 +23,15 @@ from presentation.response import (
     ExceptionHandledResponse,
     HALJSONResponse,
 )
-from pydantic.networks import AnyHttpUrl
 
 router: APIRouter = APIRouter(prefix="/player")
 playground: Optional[MicroChessPlayGround] = None
 
 
-def setting(url_env: AnyHttpUrl) -> None:
+def setting(url_env: PlayerURL) -> None:
     global playground
 
-    playground = MicroChessPlayGround.from_url(url_env, {route.name: route.path for route in router.routes})
+    playground = MicroChessPlayGround.from_url(str(url_env.url), {route.name: route.path for route in router.routes})
 
 
 responses: dict[int, dict] = {

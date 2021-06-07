@@ -10,6 +10,10 @@ from pydantic import AnyHttpUrl, BaseModel
 from pydantic.fields import Field
 
 
+class PlayerURL(BaseModel):
+    url: AnyHttpUrl
+
+
 class PlayerHALLink(BaseModel):
     href: str = Field(
         ...,
