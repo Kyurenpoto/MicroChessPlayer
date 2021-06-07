@@ -22,12 +22,13 @@ from presentation.response import (
     ExceptionHandledResponse,
     HALJSONResponse,
 )
+from pydantic.networks import AnyHttpUrl
 
 router: APIRouter = APIRouter(prefix="/player")
 playground: Optional[MicroChessPlayGround] = None
 
 
-def setting(url_env: str) -> None:
+def setting(url_env: AnyHttpUrl) -> None:
     global playground
 
     playground = MicroChessPlayGround.from_url(url_env, {route.name: route.path for route in router.routes})

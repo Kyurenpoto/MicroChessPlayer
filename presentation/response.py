@@ -18,7 +18,7 @@ from domain.dto.playerdto import (
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from httpx import HTTPStatusError, InvalidURL, RequestError
+from httpx import HTTPStatusError, RequestError
 
 
 class HALJSONResponse(JSONResponse):
@@ -29,12 +29,6 @@ class OkResponse(HALJSONResponse):
     @classmethod
     def from_response_data(cls, data) -> OkResponse:
         return OkResponse(content=jsonable_encoder(data))
-
-
-class BadRequestResponse(HALJSONResponse):
-    @classmethod
-    def from_response_data(cls, data) -> BadRequestResponse:
-        return BadRequestResponse(status_code=status.HTTP_400_BAD_REQUEST, content=jsonable_encoder(data))
 
 
 class NotFoundResponse(HALJSONResponse):
@@ -124,10 +118,6 @@ class ExceptionHandledResponse(NamedTuple):
     async def handled(self, playground: Optional[MicroChessPlayGround]) -> HALJSONResponse:
         try:
             return await self.created.created(playground)
-        except InvalidURL as ex:
-            return BadRequestResponse.from_response_data(
-                self.created.error(playground, f"Requested with invalid url: {ex.args[0]!r}", "request.InvalidURL")
-            )
         except RequestError as ex:
             return NotFoundResponse.from_response_data(
                 self.created.error(
