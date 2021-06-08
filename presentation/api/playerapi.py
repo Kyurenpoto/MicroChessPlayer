@@ -76,7 +76,7 @@ async def game(request: PlayerGameRequest) -> HALJSONResponse:
 
 @router.post(
     "/measurement",
-    name="measurment",
+    name="measurement",
     description="Measurement of win/lose/draw when playing white",
     status_code=status.HTTP_200_OK,
     response_model=PlayerMeasurementResponse,

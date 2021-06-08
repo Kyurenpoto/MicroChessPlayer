@@ -9,6 +9,7 @@ from domain.dto.playerdto import (
     PlayerAIMeasurement,
     PlayerGameRequest,
     PlayerGameResponse,
+    PlayerHAL,
     PlayerMeasurementRequest,
     PlayerMeasurementResponse,
     PlayerTrajectoryRequest,
@@ -28,6 +29,7 @@ async def test_trajectory() -> None:
             step=3,
         ),
     ) == PlayerTrajectoryResponse(
+        links=PlayerHAL.from_apis_with_requested({"trajectory": ""}, "trajectory", "post").links,
         fens=(([[FEN.starting()] * 2] * 2) + ([[FEN.first()] * 2] * 2)),
         sans=[[SAN.first()]] * 4,
         results=[[0, 0]] * 4,
@@ -39,6 +41,7 @@ async def test_game() -> None:
     assert await MicroChessPlayer("http://test", {"game": ""}, FakeService()).game(
         PlayerGameRequest(white=PlayerAIInfo(url="http://test"), black=PlayerAIInfo(url="http://test"))
     ) == PlayerGameResponse(
+        links=PlayerHAL.from_apis_with_requested({"game": ""}, "game", "post").links,
         fens=[FEN.starting()],
         sans=[],
         result="1-0",
@@ -52,6 +55,7 @@ async def test_measurement() -> None:
             white=PlayerAIInfo(url="http://test"), black=PlayerAIInfo(url="http://test"), playtime=3
         ),
     ) == PlayerMeasurementResponse(
+        links=PlayerHAL.from_apis_with_requested({"measurement": ""}, "measurement", "post").links,
         white=PlayerAIMeasurement(score=1.5, win=1, draw=1, lose=1),
         black=PlayerAIMeasurement(score=1.5, win=1, draw=1, lose=1),
     )

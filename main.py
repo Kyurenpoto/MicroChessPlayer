@@ -7,6 +7,7 @@ import argparse
 import uvicorn
 from fastapi import FastAPI
 
+from domain.dto.playerdto import PlayerURL
 from presentation.api.playerapi import router, setting
 
 app: FastAPI = FastAPI()
@@ -22,6 +23,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    setting(args.url_env)
+    setting(PlayerURL(url=args.url_env))
 
     uvicorn.run("main:app", host="0.0.0.0", port=args.port)

@@ -36,7 +36,7 @@ class Measurement(MeasurementData, IMeasurement):
         )
 
     async def produced(self, playtime: int) -> Iterable[Trace]:
-        return (await self.producable.produced([FEN.starting()]) for _ in range(playtime))
+        return [await self.producable.produced([FEN.starting()]) for _ in range(playtime)]
 
 
 class FakeMeasurement(IMeasurement):

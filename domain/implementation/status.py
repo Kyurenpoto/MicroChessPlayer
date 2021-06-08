@@ -34,6 +34,9 @@ class MicroBoardStatus(Enum):
 
 class Status(str, IStatus):
     async def status(self, fens: list[str]) -> tuple[list[float], list[list[str]]]:
+        if len(fens) == 0:
+            return [], []
+
         statuses, legal_moves = await RequestedFENStatus.from_url_with_FENs(self, fens)
 
         return Mappable(statuses).mapped(lambda x: MicroBoardStatus(x).to_result()), legal_moves

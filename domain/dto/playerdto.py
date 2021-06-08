@@ -60,6 +60,7 @@ class PlayerTrajectoryRequest(BaseModel):
         ...,
         description="List of FENs starting trajectories",
         example=["4knbr/4p3/8/7P/4RBNK/8/8/8 w Kk - 0 1", "4k3/6B1/4R1K1/4p3/8/8/8/8 b Kk - 0 1"],
+        min_items=1,
     )
     white: PlayerAIInfo = Field(
         ...,
@@ -173,7 +174,7 @@ class PlayerMeasurementRequest(BaseModel):
 
 
 class PlayerAIMeasurement(BaseModel):
-    score: int = Field(
+    score: float = Field(
         ...,
         description="Measured score",
         example="2",
