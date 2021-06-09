@@ -15,7 +15,6 @@ from domain.dto.playerdto import (
     PlayerMeasurementResponse,
     PlayerTrajectoryRequest,
     PlayerTrajectoryResponse,
-    PlayerURL,
 )
 from domain.implementation.movement import FEN, SAN
 from domain.player import FakeService, MicroChessPlayer
@@ -30,7 +29,7 @@ async def test_trajectory() -> None:
             black=PlayerAIInfo(url="http://test"),
             step=3,
         ),
-        PlayerInternalModel(url_env=PlayerURL(url="http://test"), routes={"trajectory": ""}),
+        PlayerInternalModel(url_env="http://test", routes={"trajectory": ""}),
         "trajectory",
         "post",
     ) == PlayerTrajectoryResponse(
@@ -45,7 +44,7 @@ async def test_trajectory() -> None:
 async def test_game() -> None:
     assert await MicroChessPlayer(FakeService()).game(
         PlayerGameRequest(white=PlayerAIInfo(url="http://test"), black=PlayerAIInfo(url="http://test")),
-        PlayerInternalModel(url_env=PlayerURL(url="http://test"), routes={"game": ""}),
+        PlayerInternalModel(url_env="http://test", routes={"game": ""}),
         "game",
         "post",
     ) == PlayerGameResponse(
@@ -62,7 +61,7 @@ async def test_measurement() -> None:
         PlayerMeasurementRequest(
             white=PlayerAIInfo(url="http://test"), black=PlayerAIInfo(url="http://test"), playtime=3
         ),
-        PlayerInternalModel(url_env=PlayerURL(url="http://test"), routes={"measurement": ""}),
+        PlayerInternalModel(url_env="http://test", routes={"measurement": ""}),
         "measurement",
         "post",
     ) == PlayerMeasurementResponse(

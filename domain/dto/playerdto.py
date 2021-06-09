@@ -10,12 +10,8 @@ from pydantic import AnyHttpUrl, BaseModel
 from pydantic.fields import Field
 
 
-class PlayerURL(BaseModel):
-    url: AnyHttpUrl
-
-
 class PlayerInternalModel(BaseModel):
-    url_env: PlayerURL
+    url_env: AnyHttpUrl
     routes: dict[str, str]
 
 

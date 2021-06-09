@@ -12,7 +12,6 @@ from domain.dto.playerdto import (
     PlayerMeasurementResponse,
     PlayerTrajectoryRequest,
     PlayerTrajectoryResponse,
-    PlayerURL,
 )
 from fastapi import APIRouter, status
 from presentation.response import ExceptionHandledResponse, HALJSONResponse
@@ -21,7 +20,7 @@ router: APIRouter = APIRouter(prefix="/player")
 internal_model: PlayerInternalModel
 
 
-def setting(url_env: PlayerURL) -> None:
+def setting(url_env: str) -> None:
     global internal_model
 
     internal_model = PlayerInternalModel(url_env=url_env, routes={route.name: route.path for route in router.routes})

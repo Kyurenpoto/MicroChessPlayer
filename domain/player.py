@@ -123,7 +123,7 @@ class MicroChessPlayer(NamedTuple):
     ) -> PlayerTrajectoryResponse:
         produced: Trace = (
             await self.service.trajectory(
-                internal_model.url_env.url, request.white.url, request.black.url, request.step
+                internal_model.url_env, request.white.url, request.black.url, request.step
             ).produced(request.fens)
         ).concatenated()
 
@@ -138,7 +138,7 @@ class MicroChessPlayer(NamedTuple):
         self, request: PlayerGameRequest, internal_model: PlayerInternalModel, name: str, method: str
     ) -> PlayerGameResponse:
         produced: Trace = await self.service.game(
-            internal_model.url_env.url, request.white.url, request.black.url
+            internal_model.url_env, request.white.url, request.black.url
         ).produced()
 
         return PlayerGameResponse(
@@ -152,7 +152,7 @@ class MicroChessPlayer(NamedTuple):
         self, request: PlayerMeasurementRequest, internal_model: PlayerInternalModel, name: str, method: str
     ) -> PlayerMeasurementResponse:
         statistics: Statistics = Statistics.from_traces(
-            await self.service.rate(internal_model.url_env.url, request.white.url, request.black.url).produced(
+            await self.service.rate(internal_model.url_env, request.white.url, request.black.url).produced(
                 request.playtime
             )
         )

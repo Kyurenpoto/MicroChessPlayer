@@ -4,7 +4,7 @@
 
 import pytest
 import respx
-from domain.dto.playerdto import PlayerHAL, PlayerURL
+from domain.dto.playerdto import PlayerHAL
 from domain.implementation.movement import FEN, SAN
 from fastapi import status
 from httpx import AsyncClient, Response
@@ -65,7 +65,7 @@ async def test_trajectory(async_client: AsyncClient) -> None:
         * 6
     )
 
-    setting(PlayerURL(url="http://fake-env"))
+    setting("http://fake-env")
 
     response = await async_client.post(
         url="/player/trajectory",
@@ -99,7 +99,7 @@ async def test_trajectory(async_client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_trajectory_not_found(async_client: AsyncClient) -> None:
-    setting(PlayerURL(url="http://fake-env"))
+    setting("http://fake-env")
 
     response = await async_client.post(
         url="/player/trajectory",
@@ -121,7 +121,7 @@ async def test_trajectory_unprocessable_entity(async_client: AsyncClient) -> Non
         side_effect=[Response(status.HTTP_422_UNPROCESSABLE_ENTITY, json={})]
     )
 
-    setting(PlayerURL(url="http://fake-env"))
+    setting("http://fake-env")
 
     response = await async_client.post(
         url="/player/trajectory",
@@ -151,7 +151,7 @@ async def test_game(async_client: AsyncClient) -> None:
         ]
     )
 
-    setting(PlayerURL(url="http://fake-env"))
+    setting("http://fake-env")
 
     response = await async_client.post(
         url="/player/game",
@@ -183,7 +183,7 @@ async def test_game(async_client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_game_not_found(async_client: AsyncClient) -> None:
-    setting(PlayerURL(url="http://fake-env"))
+    setting("http://fake-env")
 
     response = await async_client.post(
         url="/player/game",
@@ -203,7 +203,7 @@ async def test_game_unprocessable_entity(async_client: AsyncClient) -> None:
         side_effect=[Response(status.HTTP_422_UNPROCESSABLE_ENTITY, json={})]
     )
 
-    setting(PlayerURL(url="http://fake-env"))
+    setting("http://fake-env")
 
     response = await async_client.post(
         url="/player/game",
@@ -284,7 +284,7 @@ async def test_measurement(async_client: AsyncClient) -> None:
         ]
     )
 
-    setting(PlayerURL(url="http://fake-env"))
+    setting("http://fake-env")
 
     response = await async_client.post(
         url="/player/measurement",
@@ -316,7 +316,7 @@ async def test_measurement(async_client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_measurement_not_found(async_client: AsyncClient) -> None:
-    setting(PlayerURL(url="http://fake-env"))
+    setting("http://fake-env")
 
     response = await async_client.post(
         url="/player/measurement",
@@ -337,7 +337,7 @@ async def test_measurement_unprocessable_entity(async_client: AsyncClient) -> No
         side_effect=[Response(status.HTTP_422_UNPROCESSABLE_ENTITY, json={})]
     )
 
-    setting(PlayerURL(url="http://fake-env"))
+    setting("http://fake-env")
 
     response = await async_client.post(
         url="/player/measurement",
