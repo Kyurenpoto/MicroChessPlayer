@@ -5,7 +5,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import NamedTuple, Union
 
-from domain.dto.playerdto import (
+from src.domain.dto.playerdto import (
     PlayerErrorResponse,
     PlayerGameRequest,
     PlayerGameResponse,
@@ -16,7 +16,7 @@ from domain.dto.playerdto import (
     PlayerTrajectoryRequest,
     PlayerTrajectoryResponse,
 )
-from domain.player import MicroChessPlayer, Service
+from src.domain.player import MicroChessPlayer, Service
 
 
 class TrajectoryRequestData(NamedTuple):

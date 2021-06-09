@@ -6,8 +6,8 @@ from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from enum import Enum, auto
 
-from .enumerable import Mappable
-from .fenstatus import RequestedFENStatus
+from src.domain.implementation.enumerable import Mappable
+from src.domain.implementation.fenstatus import RequestedFENStatus
 
 
 class IStatus(metaclass=ABCMeta):

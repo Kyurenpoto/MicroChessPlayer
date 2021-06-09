@@ -31,7 +31,7 @@ This project uses pipenv. Note the following: [Version](Pipfile), [Modules](Pipf
 3. Run Player
 
     ```
-    python main.py --port [PORT(default: 8000)] --url_env [URL of MicroChess API Server]
+    python src/main.py --port [PORT(default: 8000)] --url_env [URL of MicroChess API Server]
     ```
 
 ### Run Tests

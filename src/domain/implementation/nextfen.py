@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from infra.postclient import PostClient
+from src.infra.postclient import PostClient
 
 
 class RequestedNextFEN(list[str]):

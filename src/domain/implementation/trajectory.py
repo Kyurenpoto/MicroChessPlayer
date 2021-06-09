@@ -7,8 +7,8 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import NamedTuple
 
-from domain.implementation.movement import FEN, SAN, Movement
-from domain.implementation.status import Status
+from src.domain.implementation.movement import FEN, SAN, Movement
+from src.domain.implementation.status import Status
 
 from .trace import ColoredTrace, FiniteTraceProducable, ProducableTrace, Trace
 

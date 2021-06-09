@@ -2,10 +2,12 @@
 
 # SPDX-License-Identifier: GPL-3.0-only
 
-from application.createdresponse import CreatedGameResponse, CreatedMeasurementResponse, CreatedTrajectoryResponse
-from config import Container
 from dependency_injector.wiring import Provide, inject
-from domain.dto.playerdto import (
+from fastapi import APIRouter, status
+from fastapi.params import Depends
+from src.application.createdresponse import CreatedGameResponse, CreatedMeasurementResponse, CreatedTrajectoryResponse
+from src.config import Container
+from src.domain.dto.playerdto import (
     PlayerErrorResponse,
     PlayerGameRequest,
     PlayerGameResponse,
@@ -15,9 +17,7 @@ from domain.dto.playerdto import (
     PlayerTrajectoryRequest,
     PlayerTrajectoryResponse,
 )
-from fastapi import APIRouter, status
-from fastapi.params import Depends
-from presentation.response import ExceptionHandledResponse, HALJSONResponse
+from src.presentation.response import ExceptionHandledResponse, HALJSONResponse
 
 router: APIRouter = APIRouter(prefix="/player")
 

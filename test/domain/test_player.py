@@ -3,8 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 
 import pytest
-
-from domain.dto.playerdto import (
+from src.domain.dto.playerdto import (
     PlayerAIInfo,
     PlayerAIMeasurement,
     PlayerGameRequest,
@@ -16,8 +15,8 @@ from domain.dto.playerdto import (
     PlayerTrajectoryRequest,
     PlayerTrajectoryResponse,
 )
-from domain.implementation.movement import FEN, SAN
-from domain.player import FakeService, MicroChessPlayer
+from src.domain.implementation.movement import FEN, SAN
+from src.domain.player import FakeService, MicroChessPlayer
 
 
 @pytest.mark.asyncio

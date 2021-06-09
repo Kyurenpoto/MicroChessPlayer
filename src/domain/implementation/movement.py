@@ -5,8 +5,8 @@
 from abc import ABCMeta, abstractmethod
 from typing import NamedTuple
 
-from .nextfen import RequestedNextFEN
-from .nextsan import RequestedNextSAN
+from src.domain.implementation.nextfen import RequestedNextFEN
+from src.domain.implementation.nextsan import RequestedNextSAN
 
 
 class IMovement(metaclass=ABCMeta):

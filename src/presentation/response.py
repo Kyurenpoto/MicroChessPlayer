@@ -6,12 +6,12 @@ from __future__ import annotations
 
 from typing import NamedTuple
 
-from application.createdresponse import ICreatedResponse
-from domain.dto.playerdto import PlayerInternalModel
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from httpx import HTTPStatusError, RequestError
+from src.application.createdresponse import ICreatedResponse
+from src.domain.dto.playerdto import PlayerInternalModel
 
 
 class HALJSONResponse(JSONResponse):

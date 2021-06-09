@@ -4,10 +4,10 @@
 
 import pytest
 import respx
-from domain.dto.playerdto import PlayerHAL
-from domain.implementation.movement import FEN, SAN
 from fastapi import status
 from httpx import AsyncClient, Response
+from src.domain.dto.playerdto import PlayerHAL
+from src.domain.implementation.movement import FEN, SAN
 
 
 @pytest.mark.asyncio

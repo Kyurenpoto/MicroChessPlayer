@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import NamedTuple
 
-from infra.postclient import PostClient
+from src.infra.postclient import PostClient
 
 
 class RequestedFENStatus(NamedTuple):

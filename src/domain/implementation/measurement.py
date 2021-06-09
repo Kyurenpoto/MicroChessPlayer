@@ -7,10 +7,9 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import Iterable, NamedTuple
 
-from domain.implementation.movement import FEN, Movement
-from domain.implementation.status import Status
-
-from .trace import InfiniteTraceProducable, ProducableTrace, Trace
+from src.domain.implementation.movement import FEN, Movement
+from src.domain.implementation.status import Status
+from src.domain.implementation.trace import InfiniteTraceProducable, ProducableTrace, Trace
 
 
 class IMeasurement(metaclass=ABCMeta):

@@ -4,7 +4,7 @@
 
 from dependency_injector import containers, providers
 
-from domain.dto.playerdto import PlayerInternalModel
+from src.domain.dto.playerdto import PlayerInternalModel
 
 
 class Container(containers.DeclarativeContainer):

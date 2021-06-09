@@ -7,7 +7,7 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import Iterable, NamedTuple
 
-from domain.dto.playerdto import (
+from src.domain.dto.playerdto import (
     PlayerAIMeasurement,
     PlayerGameRequest,
     PlayerGameResponse,
@@ -18,10 +18,10 @@ from domain.dto.playerdto import (
     PlayerTrajectoryRequest,
     PlayerTrajectoryResponse,
 )
-from domain.implementation.game import FakeGame, Game, IGame
-from domain.implementation.measurement import FakeMeasurement, IMeasurement, Measurement
-from domain.implementation.trace import Trace
-from domain.implementation.trajectory import FakeTrajectory, ITrajectory, Trajectory
+from src.domain.implementation.game import FakeGame, Game, IGame
+from src.domain.implementation.measurement import FakeMeasurement, IMeasurement, Measurement
+from src.domain.implementation.trace import Trace
+from src.domain.implementation.trajectory import FakeTrajectory, ITrajectory, Trajectory
 
 
 class IService(metaclass=ABCMeta):

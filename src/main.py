@@ -7,8 +7,8 @@ import argparse
 import uvicorn
 from fastapi import FastAPI
 
-from config import Container
-from presentation.api import playerapi
+from src.config import Container
+from src.presentation.api import playerapi
 
 app: FastAPI = FastAPI()
 
