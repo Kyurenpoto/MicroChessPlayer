@@ -26,14 +26,17 @@ responses: dict[int, dict] = {
     status.HTTP_400_BAD_REQUEST: {
         "model": PlayerErrorResponse,
         "description": "Requested with invalid url",
+        "content": {"application/hal+json": {"schema": {"$ref": "#/components/schemas/PlayerErrorResponse"}}},
     },
     status.HTTP_404_NOT_FOUND: {
         "model": PlayerErrorResponse,
         "description": "An error occured while requesting",
+        "content": {"application/hal+json": {"schema": {"$ref": "#/components/schemas/PlayerErrorResponse"}}},
     },
     status.HTTP_422_UNPROCESSABLE_ENTITY: {
         "model": PlayerErrorResponse,
         "description": "Received a response with a failed status",
+        "content": {"application/hal+json": {"schema": {"$ref": "#/components/schemas/PlayerErrorResponse"}}},
     },
 }
 
@@ -44,7 +47,13 @@ responses: dict[int, dict] = {
     description="Trajactory starting with the requested FEN",
     status_code=status.HTTP_200_OK,
     response_model=PlayerTrajectoryResponse,
-    responses={**responses},
+    responses={
+        status.HTTP_200_OK: {
+            "model": PlayerTrajectoryResponse,
+            "content": {"application/hal+json": {"schema": {"$ref": "#/components/schemas/PlayerTrajectoryResponse"}}},
+        },
+        **responses,
+    },
 )
 @inject
 async def trajectory(
@@ -59,7 +68,13 @@ async def trajectory(
     description="Trajactory from starting FEN to end",
     status_code=status.HTTP_200_OK,
     response_model=PlayerGameResponse,
-    responses={**responses},
+    responses={
+        status.HTTP_200_OK: {
+            "model": PlayerGameResponse,
+            "content": {"application/hal+json": {"schema": {"$ref": "#/components/schemas/PlayerGameResponse"}}},
+        },
+        **responses,
+    },
 )
 @inject
 async def game(
@@ -74,7 +89,13 @@ async def game(
     description="Measurement of win/lose/draw when playing white",
     status_code=status.HTTP_200_OK,
     response_model=PlayerMeasurementResponse,
-    responses={**responses},
+    responses={
+        status.HTTP_200_OK: {
+            "model": PlayerMeasurementResponse,
+            "content": {"application/hal+json": {"schema": {"$ref": "#/components/schemas/PlayerMeasurementResponse"}}},
+        },
+        **responses,
+    },
 )
 @inject
 async def measurement(
