@@ -9,8 +9,4 @@ from domain.dto.playerdto import PlayerInternalModel
 
 class Container(containers.DeclarativeContainer):
     config = providers.Configuration()
-    internal_model = providers.Factory(
-        PlayerInternalModel,
-        url_env=config.url_env,
-        routes=config.routes,
-    )
+    internal_model = providers.Factory(PlayerInternalModel, url_env=config.url_env, routes=config.routes)
