@@ -12,6 +12,7 @@ from domain.dto.playerdto import (
     PlayerGameRequest,
     PlayerGameResponse,
     PlayerHAL,
+    PlayerInternalModel,
     PlayerMeasurementRequest,
     PlayerMeasurementResponse,
     PlayerTrajectoryRequest,
@@ -111,45 +112,53 @@ class Statistics(dict[Score, int]):
 
 
 class MicroChessPlayer(NamedTuple):
-    url_env: str
-    apis: dict[str, str]
     service: IService
 
     @classmethod
-    def from_url(cls, url_env: str, apis: dict[str, str]) -> MicroChessPlayer:
-        return MicroChessPlayer(url_env, apis, Service())
+    def from_url(cls) -> MicroChessPlayer:
+        return MicroChessPlayer(Service())
 
-    async def trajectory(self, request: PlayerTrajectoryRequest) -> PlayerTrajectoryResponse:
+    async def trajectory(
+        self, request: PlayerTrajectoryRequest, internal_model: PlayerInternalModel, name: str, method: str
+    ) -> PlayerTrajectoryResponse:
         produced: Trace = (
-            await self.service.trajectory(self.url_env, request.white.url, request.black.url, request.step).produced(
-                request.fens
-            )
+            await self.service.trajectory(
+                internal_model.url_env.url, request.white.url, request.black.url, request.step
+            ).produced(request.fens)
         ).concatenated()
 
         return PlayerTrajectoryResponse(
-            links=PlayerHAL.from_apis_with_requested(self.apis, "trajectory", "post").links,
+            links=PlayerHAL.from_apis_with_requested(internal_model.routes, name, method).links,
             fens=produced.fens,
             sans=produced.sans,
             results=produced.results,
         )
 
-    async def game(self, request: PlayerGameRequest) -> PlayerGameResponse:
-        produced: Trace = await self.service.game(self.url_env, request.white.url, request.black.url).produced()
+    async def game(
+        self, request: PlayerGameRequest, internal_model: PlayerInternalModel, name: str, method: str
+    ) -> PlayerGameResponse:
+        produced: Trace = await self.service.game(
+            internal_model.url_env.url, request.white.url, request.black.url
+        ).produced()
 
         return PlayerGameResponse(
-            links=PlayerHAL.from_apis_with_requested(self.apis, "game", "post").links,
+            links=PlayerHAL.from_apis_with_requested(internal_model.routes, name, method).links,
             fens=produced.fens[0],
             sans=produced.sans[0],
             result=Score.from_results(produced.results[0]),
         )
 
-    async def measurement(self, request: PlayerMeasurementRequest) -> PlayerMeasurementResponse:
+    async def measurement(
+        self, request: PlayerMeasurementRequest, internal_model: PlayerInternalModel, name: str, method: str
+    ) -> PlayerMeasurementResponse:
         statistics: Statistics = Statistics.from_traces(
-            await self.service.rate(self.url_env, request.white.url, request.black.url).produced(request.playtime)
+            await self.service.rate(internal_model.url_env.url, request.white.url, request.black.url).produced(
+                request.playtime
+            )
         )
 
         return PlayerMeasurementResponse(
-            links=PlayerHAL.from_apis_with_requested(self.apis, "measurement", "post").links,
+            links=PlayerHAL.from_apis_with_requested(internal_model.routes, name, method).links,
             white=statistics.white(),
             black=statistics.black(),
         )

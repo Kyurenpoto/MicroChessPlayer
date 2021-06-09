@@ -10,10 +10,12 @@ from domain.dto.playerdto import (
     PlayerGameRequest,
     PlayerGameResponse,
     PlayerHAL,
+    PlayerInternalModel,
     PlayerMeasurementRequest,
     PlayerMeasurementResponse,
     PlayerTrajectoryRequest,
     PlayerTrajectoryResponse,
+    PlayerURL,
 )
 from domain.implementation.movement import FEN, SAN
 from domain.player import FakeService, MicroChessPlayer
@@ -21,13 +23,16 @@ from domain.player import FakeService, MicroChessPlayer
 
 @pytest.mark.asyncio
 async def test_trajectory() -> None:
-    assert await MicroChessPlayer("http://test", {"trajectory": ""}, FakeService()).trajectory(
+    assert await MicroChessPlayer(FakeService()).trajectory(
         PlayerTrajectoryRequest(
             fens=[FEN.starting(), FEN.first()],
             white=PlayerAIInfo(url="http://test"),
             black=PlayerAIInfo(url="http://test"),
             step=3,
         ),
+        PlayerInternalModel(url_env=PlayerURL(url="http://test"), routes={"trajectory": ""}),
+        "trajectory",
+        "post",
     ) == PlayerTrajectoryResponse(
         links=PlayerHAL.from_apis_with_requested({"trajectory": ""}, "trajectory", "post").links,
         fens=(([[FEN.starting()] * 2] * 2) + ([[FEN.first()] * 2] * 2)),
@@ -38,8 +43,11 @@ async def test_trajectory() -> None:
 
 @pytest.mark.asyncio
 async def test_game() -> None:
-    assert await MicroChessPlayer("http://test", {"game": ""}, FakeService()).game(
-        PlayerGameRequest(white=PlayerAIInfo(url="http://test"), black=PlayerAIInfo(url="http://test"))
+    assert await MicroChessPlayer(FakeService()).game(
+        PlayerGameRequest(white=PlayerAIInfo(url="http://test"), black=PlayerAIInfo(url="http://test")),
+        PlayerInternalModel(url_env=PlayerURL(url="http://test"), routes={"game": ""}),
+        "game",
+        "post",
     ) == PlayerGameResponse(
         links=PlayerHAL.from_apis_with_requested({"game": ""}, "game", "post").links,
         fens=[FEN.starting()],
@@ -50,10 +58,13 @@ async def test_game() -> None:
 
 @pytest.mark.asyncio
 async def test_measurement() -> None:
-    assert await MicroChessPlayer("http://test", {"measurement": ""}, FakeService()).measurement(
+    assert await MicroChessPlayer(FakeService()).measurement(
         PlayerMeasurementRequest(
             white=PlayerAIInfo(url="http://test"), black=PlayerAIInfo(url="http://test"), playtime=3
         ),
+        PlayerInternalModel(url_env=PlayerURL(url="http://test"), routes={"measurement": ""}),
+        "measurement",
+        "post",
     ) == PlayerMeasurementResponse(
         links=PlayerHAL.from_apis_with_requested({"measurement": ""}, "measurement", "post").links,
         white=PlayerAIMeasurement(score=1.5, win=1, draw=1, lose=1),

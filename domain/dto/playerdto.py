@@ -14,6 +14,11 @@ class PlayerURL(BaseModel):
     url: AnyHttpUrl
 
 
+class PlayerInternalModel(BaseModel):
+    url_env: PlayerURL
+    routes: dict[str, str]
+
+
 class PlayerHALLink(BaseModel):
     href: str = Field(
         ...,
@@ -32,17 +37,17 @@ class PlayerHAL(BaseModel):
     )
 
     @classmethod
-    def from_apis(cls, apis: dict[str, str]) -> PlayerHAL:
-        return PlayerHAL(links={rel: PlayerHALLink(href=api) for rel, api in apis.items()})
+    def from_apis(cls, routes: dict[str, str]) -> PlayerHAL:
+        return PlayerHAL(links={rel: PlayerHALLink(href=api) for rel, api in routes.items()})
 
     @classmethod
-    def from_apis_with_requested(cls, apis: dict[str, str], requested: str, http_method) -> PlayerHAL:
+    def from_apis_with_requested(cls, routes: dict[str, str], requested: str, http_method) -> PlayerHAL:
         return PlayerHAL(
             links={
-                "self": PlayerHALLink(href=apis[requested]),
-                "profile": PlayerHALLink.doc_link(requested, apis[requested], http_method, "/docs#default/"),
-                "profile2": PlayerHALLink.doc_link(requested, apis[requested], http_method, "/redoc#operation/"),
-                **PlayerHAL.from_apis(apis).links,
+                "self": PlayerHALLink(href=routes[requested]),
+                "profile": PlayerHALLink.doc_link(requested, routes[requested], http_method, "/docs#default/"),
+                "profile2": PlayerHALLink.doc_link(requested, routes[requested], http_method, "/redoc#operation/"),
+                **PlayerHAL.from_apis(routes).links,
             }
         )
 

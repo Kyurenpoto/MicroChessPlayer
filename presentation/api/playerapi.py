@@ -2,13 +2,12 @@
 
 # SPDX-License-Identifier: GPL-3.0-only
 
-from typing import Optional
-
-from application.playground import MicroChessPlayGround
+from application.createdresponse import CreatedGameResponse, CreatedMeasurementResponse, CreatedTrajectoryResponse
 from domain.dto.playerdto import (
     PlayerErrorResponse,
     PlayerGameRequest,
     PlayerGameResponse,
+    PlayerInternalModel,
     PlayerMeasurementRequest,
     PlayerMeasurementResponse,
     PlayerTrajectoryRequest,
@@ -16,22 +15,16 @@ from domain.dto.playerdto import (
     PlayerURL,
 )
 from fastapi import APIRouter, status
-from presentation.response import (
-    CreatedGameResponse,
-    CreatedMeasurementResponse,
-    CreatedTrajectoryResponse,
-    ExceptionHandledResponse,
-    HALJSONResponse,
-)
+from presentation.response import ExceptionHandledResponse, HALJSONResponse
 
 router: APIRouter = APIRouter(prefix="/player")
-playground: Optional[MicroChessPlayGround] = None
+internal_model: PlayerInternalModel
 
 
 def setting(url_env: PlayerURL) -> None:
-    global playground
+    global internal_model
 
-    playground = MicroChessPlayGround.from_url(str(url_env.url), {route.name: route.path for route in router.routes})
+    internal_model = PlayerInternalModel(url_env=url_env, routes={route.name: route.path for route in router.routes})
 
 
 responses: dict[int, dict] = {
@@ -59,7 +52,7 @@ responses: dict[int, dict] = {
     responses={**responses},
 )
 async def trajectory(request: PlayerTrajectoryRequest) -> HALJSONResponse:
-    return await ExceptionHandledResponse(CreatedTrajectoryResponse(request)).handled(playground)
+    return await ExceptionHandledResponse(internal_model, CreatedTrajectoryResponse(request)).handled()
 
 
 @router.post(
@@ -71,7 +64,7 @@ async def trajectory(request: PlayerTrajectoryRequest) -> HALJSONResponse:
     responses={**responses},
 )
 async def game(request: PlayerGameRequest) -> HALJSONResponse:
-    return await ExceptionHandledResponse(CreatedGameResponse(request)).handled(playground)
+    return await ExceptionHandledResponse(internal_model, CreatedGameResponse(request)).handled()
 
 
 @router.post(
@@ -83,4 +76,4 @@ async def game(request: PlayerGameRequest) -> HALJSONResponse:
     responses={**responses},
 )
 async def measurement(request: PlayerMeasurementRequest) -> HALJSONResponse:
-    return await ExceptionHandledResponse(CreatedMeasurementResponse(request)).handled(playground)
+    return await ExceptionHandledResponse(internal_model, CreatedMeasurementResponse(request)).handled()
