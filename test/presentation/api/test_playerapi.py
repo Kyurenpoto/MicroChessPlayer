@@ -4,11 +4,12 @@
 
 import pytest
 import respx
-from domain.dto.playerdto import PlayerHAL
+from domain.dto.playerdto import PlayerHAL, PlayerInternalModel
 from domain.implementation.movement import FEN, SAN
 from fastapi import status
 from httpx import AsyncClient, Response
-from presentation.api.playerapi import setting
+from main import app
+from presentation.api.playerapi import router
 
 
 @pytest.mark.asyncio
@@ -65,17 +66,18 @@ async def test_trajectory(async_client: AsyncClient) -> None:
         * 6
     )
 
-    setting("http://fake-env")
-
-    response = await async_client.post(
-        url="/player/trajectory",
-        json={
-            "fens": [FEN.starting(), FEN.first()],
-            "white": {"url": "http://fake-ai"},
-            "black": {"url": "http://fake-ai"},
-            "step": 3,
-        },
-    )
+    with app.state.container.internal_model.override(
+        PlayerInternalModel(url_env="http://fake-env", routes={route.name: route.path for route in router.routes})
+    ):
+        response = await async_client.post(
+            url="/player/trajectory",
+            json={
+                "fens": [FEN.starting(), FEN.first()],
+                "white": {"url": "http://fake-ai"},
+                "black": {"url": "http://fake-ai"},
+                "step": 3,
+            },
+        )
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {
@@ -99,17 +101,18 @@ async def test_trajectory(async_client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_trajectory_not_found(async_client: AsyncClient) -> None:
-    setting("http://fake-env")
-
-    response = await async_client.post(
-        url="/player/trajectory",
-        json={
-            "fens": [FEN.starting(), FEN.first()],
-            "white": {"url": "http://fake-ai"},
-            "black": {"url": "http://fake-ai"},
-            "step": 3,
-        },
-    )
+    with app.state.container.internal_model.override(
+        PlayerInternalModel(url_env="http://fake-env", routes={route.name: route.path for route in router.routes})
+    ):
+        response = await async_client.post(
+            url="/player/trajectory",
+            json={
+                "fens": [FEN.starting(), FEN.first()],
+                "white": {"url": "http://fake-ai"},
+                "black": {"url": "http://fake-ai"},
+                "step": 3,
+            },
+        )
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -121,17 +124,18 @@ async def test_trajectory_unprocessable_entity(async_client: AsyncClient) -> Non
         side_effect=[Response(status.HTTP_422_UNPROCESSABLE_ENTITY, json={})]
     )
 
-    setting("http://fake-env")
-
-    response = await async_client.post(
-        url="/player/trajectory",
-        json={
-            "fens": [FEN.starting(), FEN.first()],
-            "white": {"url": "http://fake-ai"},
-            "black": {"url": "http://fake-ai"},
-            "step": 3,
-        },
-    )
+    with app.state.container.internal_model.override(
+        PlayerInternalModel(url_env="http://fake-env", routes={route.name: route.path for route in router.routes})
+    ):
+        response = await async_client.post(
+            url="/player/trajectory",
+            json={
+                "fens": [FEN.starting(), FEN.first()],
+                "white": {"url": "http://fake-ai"},
+                "black": {"url": "http://fake-ai"},
+                "step": 3,
+            },
+        )
 
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
@@ -151,15 +155,16 @@ async def test_game(async_client: AsyncClient) -> None:
         ]
     )
 
-    setting("http://fake-env")
-
-    response = await async_client.post(
-        url="/player/game",
-        json={
-            "white": {"url": "http://fake-ai"},
-            "black": {"url": "http://fake-ai"},
-        },
-    )
+    with app.state.container.internal_model.override(
+        PlayerInternalModel(url_env="http://fake-env", routes={route.name: route.path for route in router.routes})
+    ):
+        response = await async_client.post(
+            url="/player/game",
+            json={
+                "white": {"url": "http://fake-ai"},
+                "black": {"url": "http://fake-ai"},
+            },
+        )
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {
@@ -183,15 +188,16 @@ async def test_game(async_client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_game_not_found(async_client: AsyncClient) -> None:
-    setting("http://fake-env")
-
-    response = await async_client.post(
-        url="/player/game",
-        json={
-            "white": {"url": "http://fake-ai"},
-            "black": {"url": "http://fake-ai"},
-        },
-    )
+    with app.state.container.internal_model.override(
+        PlayerInternalModel(url_env="http://fake-env", routes={route.name: route.path for route in router.routes})
+    ):
+        response = await async_client.post(
+            url="/player/game",
+            json={
+                "white": {"url": "http://fake-ai"},
+                "black": {"url": "http://fake-ai"},
+            },
+        )
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -203,15 +209,16 @@ async def test_game_unprocessable_entity(async_client: AsyncClient) -> None:
         side_effect=[Response(status.HTTP_422_UNPROCESSABLE_ENTITY, json={})]
     )
 
-    setting("http://fake-env")
-
-    response = await async_client.post(
-        url="/player/game",
-        json={
-            "white": {"url": "http://fake-ai"},
-            "black": {"url": "http://fake-ai"},
-        },
-    )
+    with app.state.container.internal_model.override(
+        PlayerInternalModel(url_env="http://fake-env", routes={route.name: route.path for route in router.routes})
+    ):
+        response = await async_client.post(
+            url="/player/game",
+            json={
+                "white": {"url": "http://fake-ai"},
+                "black": {"url": "http://fake-ai"},
+            },
+        )
 
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
@@ -284,16 +291,17 @@ async def test_measurement(async_client: AsyncClient) -> None:
         ]
     )
 
-    setting("http://fake-env")
-
-    response = await async_client.post(
-        url="/player/measurement",
-        json={
-            "white": {"url": "http://fake-ai"},
-            "black": {"url": "http://fake-ai"},
-            "playtime": 3,
-        },
-    )
+    with app.state.container.internal_model.override(
+        PlayerInternalModel(url_env="http://fake-env", routes={route.name: route.path for route in router.routes})
+    ):
+        response = await async_client.post(
+            url="/player/measurement",
+            json={
+                "white": {"url": "http://fake-ai"},
+                "black": {"url": "http://fake-ai"},
+                "playtime": 3,
+            },
+        )
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {
@@ -316,16 +324,17 @@ async def test_measurement(async_client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_measurement_not_found(async_client: AsyncClient) -> None:
-    setting("http://fake-env")
-
-    response = await async_client.post(
-        url="/player/measurement",
-        json={
-            "white": {"url": "http://fake-ai"},
-            "black": {"url": "http://fake-ai"},
-            "playtime": 3,
-        },
-    )
+    with app.state.container.internal_model.override(
+        PlayerInternalModel(url_env="http://fake-env", routes={route.name: route.path for route in router.routes})
+    ):
+        response = await async_client.post(
+            url="/player/measurement",
+            json={
+                "white": {"url": "http://fake-ai"},
+                "black": {"url": "http://fake-ai"},
+                "playtime": 3,
+            },
+        )
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -337,15 +346,16 @@ async def test_measurement_unprocessable_entity(async_client: AsyncClient) -> No
         side_effect=[Response(status.HTTP_422_UNPROCESSABLE_ENTITY, json={})]
     )
 
-    setting("http://fake-env")
-
-    response = await async_client.post(
-        url="/player/measurement",
-        json={
-            "white": {"url": "http://fake-ai"},
-            "black": {"url": "http://fake-ai"},
-            "playtime": 3,
-        },
-    )
+    with app.state.container.internal_model.override(
+        PlayerInternalModel(url_env="http://fake-env", routes={route.name: route.path for route in router.routes})
+    ):
+        response = await async_client.post(
+            url="/player/measurement",
+            json={
+                "white": {"url": "http://fake-ai"},
+                "black": {"url": "http://fake-ai"},
+                "playtime": 3,
+            },
+        )
 
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY

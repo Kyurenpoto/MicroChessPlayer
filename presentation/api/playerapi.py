@@ -3,6 +3,8 @@
 # SPDX-License-Identifier: GPL-3.0-only
 
 from application.createdresponse import CreatedGameResponse, CreatedMeasurementResponse, CreatedTrajectoryResponse
+from config import Container
+from dependency_injector.wiring import Provide, inject
 from domain.dto.playerdto import (
     PlayerErrorResponse,
     PlayerGameRequest,
@@ -14,16 +16,10 @@ from domain.dto.playerdto import (
     PlayerTrajectoryResponse,
 )
 from fastapi import APIRouter, status
+from fastapi.params import Depends
 from presentation.response import ExceptionHandledResponse, HALJSONResponse
 
 router: APIRouter = APIRouter(prefix="/player")
-internal_model: PlayerInternalModel
-
-
-def setting(url_env: str) -> None:
-    global internal_model
-
-    internal_model = PlayerInternalModel(url_env=url_env, routes={route.name: route.path for route in router.routes})
 
 
 responses: dict[int, dict] = {
@@ -50,7 +46,10 @@ responses: dict[int, dict] = {
     response_model=PlayerTrajectoryResponse,
     responses={**responses},
 )
-async def trajectory(request: PlayerTrajectoryRequest) -> HALJSONResponse:
+@inject
+async def trajectory(
+    request: PlayerTrajectoryRequest, internal_model: PlayerInternalModel = Depends(Provide[Container.internal_model])
+) -> HALJSONResponse:
     return await ExceptionHandledResponse(internal_model, CreatedTrajectoryResponse(request)).handled()
 
 
@@ -62,7 +61,10 @@ async def trajectory(request: PlayerTrajectoryRequest) -> HALJSONResponse:
     response_model=PlayerGameResponse,
     responses={**responses},
 )
-async def game(request: PlayerGameRequest) -> HALJSONResponse:
+@inject
+async def game(
+    request: PlayerGameRequest, internal_model: PlayerInternalModel = Depends(Provide[Container.internal_model])
+) -> HALJSONResponse:
     return await ExceptionHandledResponse(internal_model, CreatedGameResponse(request)).handled()
 
 
@@ -74,5 +76,8 @@ async def game(request: PlayerGameRequest) -> HALJSONResponse:
     response_model=PlayerMeasurementResponse,
     responses={**responses},
 )
-async def measurement(request: PlayerMeasurementRequest) -> HALJSONResponse:
+@inject
+async def measurement(
+    request: PlayerMeasurementRequest, internal_model: PlayerInternalModel = Depends(Provide[Container.internal_model])
+) -> HALJSONResponse:
     return await ExceptionHandledResponse(internal_model, CreatedMeasurementResponse(request)).handled()

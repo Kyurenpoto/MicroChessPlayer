@@ -4,11 +4,12 @@
 
 import pytest
 from httpx import AsyncClient
-from main import app
+from main import app, wire
 
 
 @pytest.fixture
 async def async_client() -> AsyncClient:
+    wire("")
     client = AsyncClient(app=app, base_url="http://test")
     yield client
     await client.aclose()

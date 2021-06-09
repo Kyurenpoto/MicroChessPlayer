@@ -7,11 +7,20 @@ import argparse
 import uvicorn
 from fastapi import FastAPI
 
-from presentation.api.playerapi import router, setting
+from config import Container
+from presentation.api import playerapi
 
 app: FastAPI = FastAPI()
 
-app.include_router(router)
+app.include_router(playerapi.router)
+
+
+def wire(url_env: str) -> None:
+    app.state.container = Container()
+    app.state.container.config.from_dict(
+        {"url_env": url_env, "routes": {route.name: route.path for route in playerapi.router.routes}}
+    )
+    app.state.container.wire(modules=[playerapi])
 
 
 if __name__ == "__main__":
@@ -22,6 +31,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    setting(args.url_env)
+    wire(args.url_env)
 
     uvicorn.run("main:app", host="0.0.0.0", port=args.port)

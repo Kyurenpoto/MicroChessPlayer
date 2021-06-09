@@ -7,6 +7,7 @@ name = "pypi"
 fastapi = "*"
 uvicorn = "*"
 httpx = "*"
+dependency-injector = "*"
 
 [dev-packages]
 pytest = "*"
