@@ -15,6 +15,7 @@ pytest-asyncio = "*"
 pytest-cov = "*"
 black = "*"
 respx = "*"
+pytest-xdist = "*"
 
 [requires]
 python_version = "3.9"
