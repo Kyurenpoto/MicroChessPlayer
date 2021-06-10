@@ -11,7 +11,6 @@ from src.domain.dto.playerdto import (
     PlayerAIMeasurement,
     PlayerGameRequest,
     PlayerGameResponse,
-    PlayerHAL,
     PlayerInternalModel,
     PlayerMeasurementRequest,
     PlayerMeasurementResponse,
@@ -22,6 +21,7 @@ from src.domain.implementation.game import FakeGame, Game, IGame
 from src.domain.implementation.measurement import FakeMeasurement, IMeasurement, Measurement
 from src.domain.implementation.trace import Trace
 from src.domain.implementation.trajectory import FakeTrajectory, ITrajectory, Trajectory
+from submodules.fastapi_haljson.src.halmodel import HALBase
 
 
 class IService(metaclass=ABCMeta):
@@ -128,7 +128,7 @@ class MicroChessPlayer(NamedTuple):
         ).concatenated()
 
         return PlayerTrajectoryResponse(
-            links=PlayerHAL.from_apis_with_requested(internal_model.routes, name, method).links,
+            links=HALBase.from_routes_with_requested(internal_model.routes, name, method).links,
             fens=produced.fens,
             sans=produced.sans,
             results=produced.results,
@@ -142,7 +142,7 @@ class MicroChessPlayer(NamedTuple):
         ).produced()
 
         return PlayerGameResponse(
-            links=PlayerHAL.from_apis_with_requested(internal_model.routes, name, method).links,
+            links=HALBase.from_routes_with_requested(internal_model.routes, name, method).links,
             fens=produced.fens[0],
             sans=produced.sans[0],
             result=Score.from_results(produced.results[0]),
@@ -158,7 +158,7 @@ class MicroChessPlayer(NamedTuple):
         )
 
         return PlayerMeasurementResponse(
-            links=PlayerHAL.from_apis_with_requested(internal_model.routes, name, method).links,
+            links=HALBase.from_routes_with_requested(internal_model.routes, name, method).links,
             white=statistics.white(),
             black=statistics.black(),
         )

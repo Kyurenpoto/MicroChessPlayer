@@ -8,44 +8,12 @@ from typing import Union
 
 from pydantic import AnyHttpUrl, BaseModel
 from pydantic.fields import Field
+from submodules.fastapi_haljson.src.halmodel import HALBase
 
 
 class PlayerInternalModel(BaseModel):
     url_env: AnyHttpUrl
     routes: dict[str, str]
-
-
-class PlayerHALLink(BaseModel):
-    href: str = Field(
-        ...,
-        description="HATEOAS link",
-    )
-
-    @classmethod
-    def doc_link(cls, rel: str, api: str, http_method: str, profile_location: str) -> PlayerHALLink:
-        return PlayerHALLink(href=profile_location + "_".join([rel] + api.split("/")[1:] + [http_method]))
-
-
-class PlayerHAL(BaseModel):
-    links: dict[str, PlayerHALLink] = Field(
-        ...,
-        description="HATEOAS links",
-    )
-
-    @classmethod
-    def from_apis(cls, routes: dict[str, str]) -> PlayerHAL:
-        return PlayerHAL(links={rel: PlayerHALLink(href=api) for rel, api in routes.items()})
-
-    @classmethod
-    def from_apis_with_requested(cls, routes: dict[str, str], requested: str, http_method) -> PlayerHAL:
-        return PlayerHAL(
-            links={
-                "self": PlayerHALLink(href=routes[requested]),
-                "profile": PlayerHALLink.doc_link(requested, routes[requested], http_method, "/docs#default/"),
-                "profile2": PlayerHALLink.doc_link(requested, routes[requested], http_method, "/redoc#operation/"),
-                **PlayerHAL.from_apis(routes).links,
-            }
-        )
 
 
 class PlayerAIInfo(BaseModel):
@@ -79,7 +47,7 @@ class PlayerTrajectoryRequest(BaseModel):
     )
 
 
-class PlayerTrajectoryResponse(PlayerHAL):
+class PlayerTrajectoryResponse(HALBase):
     fens: list[list[str]] = Field(
         ...,
         description="List of FENs in trajectories",
@@ -111,7 +79,7 @@ class PlayerGameRequest(BaseModel):
     )
 
 
-class PlayerGameResponse(PlayerHAL):
+class PlayerGameResponse(HALBase):
     fens: list[str] = Field(
         ...,
         description="List of FENs in episode",
@@ -197,7 +165,7 @@ class PlayerAIMeasurement(BaseModel):
     )
 
 
-class PlayerMeasurementResponse(PlayerHAL):
+class PlayerMeasurementResponse(HALBase):
     white: PlayerAIMeasurement = Field(
         ...,
         description="Measurement of white-side AI",
@@ -208,7 +176,7 @@ class PlayerMeasurementResponse(PlayerHAL):
     )
 
 
-class PlayerErrorResponse(PlayerHAL):
+class PlayerErrorResponse(HALBase):
     message: str = Field(
         ...,
         description="Error message",

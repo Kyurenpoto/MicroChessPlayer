@@ -17,7 +17,8 @@ from src.domain.dto.playerdto import (
     PlayerTrajectoryRequest,
     PlayerTrajectoryResponse,
 )
-from src.presentation.response import ExceptionHandledResponse, HALJSONResponse
+from src.presentation.response import ExceptionHandledResponse
+from submodules.fastapi_haljson.src.halresponse import HALJSONResponse
 
 router: APIRouter = APIRouter(prefix="/player")
 

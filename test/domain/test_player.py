@@ -8,7 +8,6 @@ from src.domain.dto.playerdto import (
     PlayerAIMeasurement,
     PlayerGameRequest,
     PlayerGameResponse,
-    PlayerHAL,
     PlayerInternalModel,
     PlayerMeasurementRequest,
     PlayerMeasurementResponse,
@@ -17,6 +16,7 @@ from src.domain.dto.playerdto import (
 )
 from src.domain.implementation.movement import FEN, SAN
 from src.domain.player import FakeService, MicroChessPlayer
+from submodules.fastapi_haljson.src.halmodel import HALBase
 
 
 @pytest.mark.asyncio
@@ -32,7 +32,7 @@ async def test_trajectory() -> None:
         "trajectory",
         "post",
     ) == PlayerTrajectoryResponse(
-        links=PlayerHAL.from_apis_with_requested({"trajectory": ""}, "trajectory", "post").links,
+        links=HALBase.from_routes_with_requested({"trajectory": ""}, "trajectory", "post").links,
         fens=(([[FEN.starting()] * 2] * 2) + ([[FEN.first()] * 2] * 2)),
         sans=[[SAN.first()]] * 4,
         results=[[0, 0]] * 4,
@@ -47,7 +47,7 @@ async def test_game() -> None:
         "game",
         "post",
     ) == PlayerGameResponse(
-        links=PlayerHAL.from_apis_with_requested({"game": ""}, "game", "post").links,
+        links=HALBase.from_routes_with_requested({"game": ""}, "game", "post").links,
         fens=[FEN.starting()],
         sans=[],
         result="1-0",
@@ -64,7 +64,7 @@ async def test_measurement() -> None:
         "measurement",
         "post",
     ) == PlayerMeasurementResponse(
-        links=PlayerHAL.from_apis_with_requested({"measurement": ""}, "measurement", "post").links,
+        links=HALBase.from_routes_with_requested({"measurement": ""}, "measurement", "post").links,
         white=PlayerAIMeasurement(score=1.5, win=1, draw=1, lose=1),
         black=PlayerAIMeasurement(score=1.5, win=1, draw=1, lose=1),
     )

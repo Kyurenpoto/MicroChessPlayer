@@ -9,7 +9,6 @@ from src.domain.dto.playerdto import (
     PlayerErrorResponse,
     PlayerGameRequest,
     PlayerGameResponse,
-    PlayerHAL,
     PlayerInternalModel,
     PlayerMeasurementRequest,
     PlayerMeasurementResponse,
@@ -17,6 +16,7 @@ from src.domain.dto.playerdto import (
     PlayerTrajectoryResponse,
 )
 from src.domain.player import MicroChessPlayer, Service
+from submodules.fastapi_haljson.src.halmodel import HALBase
 
 
 class TrajectoryRequestData(NamedTuple):
@@ -57,7 +57,7 @@ class CreatedTrajectoryResponse(TrajectoryRequestData, ICreatedResponse):
 
     def error(self, internal_model: PlayerInternalModel, message: str, error_type: str) -> PlayerErrorResponse:
         return PlayerErrorResponse(
-            links=PlayerHAL.from_apis_with_requested(internal_model.routes, self.name, self.method).links,
+            links=HALBase.from_routes_with_requested(internal_model.routes, self.name, self.method).links,
             message=message,
             location="body",
             param="fens, white, black, step",
@@ -74,7 +74,7 @@ class CreatedGameResponse(GameRequestData, ICreatedResponse):
 
     def error(self, internal_model: PlayerInternalModel, message: str, error_type: str) -> PlayerErrorResponse:
         return PlayerErrorResponse(
-            links=PlayerHAL.from_apis_with_requested(internal_model.routes, self.name, self.method).links,
+            links=HALBase.from_routes_with_requested(internal_model.routes, self.name, self.method).links,
             message=message,
             location="body",
             param="white, black",
@@ -91,7 +91,7 @@ class CreatedMeasurementResponse(MeasurementRequestData, ICreatedResponse):
 
     def error(self, internal_model: PlayerInternalModel, message: str, error_type: str) -> PlayerErrorResponse:
         return PlayerErrorResponse(
-            links=PlayerHAL.from_apis_with_requested(internal_model.routes, self.name, self.method).links,
+            links=HALBase.from_routes_with_requested(internal_model.routes, self.name, self.method).links,
             message=message,
             location="body",
             param="white, black, playtime",

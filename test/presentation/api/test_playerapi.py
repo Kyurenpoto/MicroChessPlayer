@@ -6,8 +6,8 @@ import pytest
 import respx
 from fastapi import status
 from httpx import AsyncClient, Response
-from src.domain.dto.playerdto import PlayerHAL
 from src.domain.implementation.movement import FEN, SAN
+from submodules.fastapi_haljson.src.halmodel import HALBase
 
 
 @pytest.mark.asyncio
@@ -78,7 +78,7 @@ async def test_trajectory(async_client: AsyncClient) -> None:
     assert response.json() == {
         "links": {
             rel: {"href": url.href}
-            for rel, url in PlayerHAL.from_apis_with_requested(
+            for rel, url in HALBase.from_routes_with_requested(
                 {
                     "trajectory": "/player/trajectory",
                     "game": "/player/game",
@@ -156,7 +156,7 @@ async def test_game(async_client: AsyncClient) -> None:
     assert response.json() == {
         "links": {
             rel: {"href": url.href}
-            for rel, url in PlayerHAL.from_apis_with_requested(
+            for rel, url in HALBase.from_routes_with_requested(
                 {
                     "trajectory": "/player/trajectory",
                     "game": "/player/game",
@@ -284,7 +284,7 @@ async def test_measurement(async_client: AsyncClient) -> None:
     assert response.json() == {
         "links": {
             rel: {"href": url.href}
-            for rel, url in PlayerHAL.from_apis_with_requested(
+            for rel, url in HALBase.from_routes_with_requested(
                 {
                     "trajectory": "/player/trajectory",
                     "game": "/player/game",
