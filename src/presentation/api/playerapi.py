@@ -2,16 +2,12 @@
 
 # SPDX-License-Identifier: MIT
 
-from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, status
-from fastapi.params import Depends
 from src.application.createdresponse import CreatedGameResponse, CreatedMeasurementResponse, CreatedTrajectoryResponse
-from src.config import Container
 from src.domain.dto.playerdto import (
     PlayerErrorResponse,
     PlayerGameRequest,
     PlayerGameResponse,
-    PlayerInternal,
     PlayerMeasurementRequest,
     PlayerMeasurementResponse,
     PlayerTrajectoryRequest,
@@ -56,11 +52,8 @@ responses: dict[int, dict] = {
         **responses,
     },
 )
-@inject
-async def trajectory(
-    request: PlayerTrajectoryRequest, internal_model: PlayerInternal = Depends(Provide[Container.internal_model])
-) -> HALJSONResponse:
-    return await ExceptionHandledResponse(internal_model, CreatedTrajectoryResponse(request)).handled()
+async def trajectory(request: PlayerTrajectoryRequest) -> HALJSONResponse:
+    return await ExceptionHandledResponse(CreatedTrajectoryResponse(request)).handled()
 
 
 @router.post(
@@ -77,11 +70,8 @@ async def trajectory(
         **responses,
     },
 )
-@inject
-async def game(
-    request: PlayerGameRequest, internal_model: PlayerInternal = Depends(Provide[Container.internal_model])
-) -> HALJSONResponse:
-    return await ExceptionHandledResponse(internal_model, CreatedGameResponse(request)).handled()
+async def game(request: PlayerGameRequest) -> HALJSONResponse:
+    return await ExceptionHandledResponse(CreatedGameResponse(request)).handled()
 
 
 @router.post(
@@ -98,8 +88,5 @@ async def game(
         **responses,
     },
 )
-@inject
-async def measurement(
-    request: PlayerMeasurementRequest, internal_model: PlayerInternal = Depends(Provide[Container.internal_model])
-) -> HALJSONResponse:
-    return await ExceptionHandledResponse(internal_model, CreatedMeasurementResponse(request)).handled()
+async def measurement(request: PlayerMeasurementRequest) -> HALJSONResponse:
+    return await ExceptionHandledResponse(CreatedMeasurementResponse(request)).handled()

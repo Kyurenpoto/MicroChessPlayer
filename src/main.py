@@ -8,19 +8,20 @@ import uvicorn
 from fastapi import FastAPI
 
 from src.config import Container
-from src.presentation.api import playerapi
+from src.presentation import response
+from src.presentation.api.playerapi import router
 
 app: FastAPI = FastAPI()
 
-app.include_router(playerapi.router)
+app.include_router(router)
 
 
 def wire(url_env: str) -> None:
     app.state.container = Container()
     app.state.container.config.from_dict(
-        {"url_env": url_env, "routes": {route.name: route.path for route in playerapi.router.routes}}
+        {"url_env": url_env, "routes": {route.name: route.path for route in router.routes}}
     )
-    app.state.container.wire(modules=[playerapi])
+    app.state.container.wire(modules=[response])
 
 
 if __name__ == "__main__":
