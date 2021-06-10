@@ -7,8 +7,8 @@ import argparse
 import uvicorn
 from fastapi import FastAPI
 
+import src.presentation.response as response
 from src.config import Container
-from src.presentation import response
 from src.presentation.api.playerapi import router
 
 app: FastAPI = FastAPI()
