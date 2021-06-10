@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: © 2021 Kyurenpoto <heal9179@gmail.com>
 
-# SPDX-License-Identifier: GPL-3.0-only
+# SPDX-License-Identifier: MIT
 
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, status

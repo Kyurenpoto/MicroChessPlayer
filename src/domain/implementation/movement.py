@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: © 2021 Kyurenpoto <heal9179@gmail.com>
 
-# SPDX-License-Identifier: GPL-3.0-only
+# SPDX-License-Identifier: MIT
 
 from abc import ABCMeta, abstractmethod
 from typing import NamedTuple
