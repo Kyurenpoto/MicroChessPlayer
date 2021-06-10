@@ -8,7 +8,7 @@ from src.domain.dto.playerdto import (
     PlayerAIMeasurement,
     PlayerGameRequest,
     PlayerGameResponse,
-    PlayerInternalModel,
+    PlayerInternal,
     PlayerMeasurementRequest,
     PlayerMeasurementResponse,
     PlayerTrajectoryRequest,
@@ -28,7 +28,7 @@ async def test_trajectory() -> None:
             black=PlayerAIInfo(url="http://test"),
             step=3,
         ),
-        PlayerInternalModel(url_env="http://test", routes={"trajectory": ""}),
+        PlayerInternal(url_env="http://test", routes={"trajectory": ""}),
         "trajectory",
         "post",
     ) == PlayerTrajectoryResponse(
@@ -43,7 +43,7 @@ async def test_trajectory() -> None:
 async def test_game() -> None:
     assert await MicroChessPlayer(FakeService()).game(
         PlayerGameRequest(white=PlayerAIInfo(url="http://test"), black=PlayerAIInfo(url="http://test")),
-        PlayerInternalModel(url_env="http://test", routes={"game": ""}),
+        PlayerInternal(url_env="http://test", routes={"game": ""}),
         "game",
         "post",
     ) == PlayerGameResponse(
@@ -60,7 +60,7 @@ async def test_measurement() -> None:
         PlayerMeasurementRequest(
             white=PlayerAIInfo(url="http://test"), black=PlayerAIInfo(url="http://test"), playtime=3
         ),
-        PlayerInternalModel(url_env="http://test", routes={"measurement": ""}),
+        PlayerInternal(url_env="http://test", routes={"measurement": ""}),
         "measurement",
         "post",
     ) == PlayerMeasurementResponse(

@@ -11,7 +11,7 @@ from src.domain.dto.playerdto import (
     PlayerErrorResponse,
     PlayerGameRequest,
     PlayerGameResponse,
-    PlayerInternalModel,
+    PlayerInternal,
     PlayerMeasurementRequest,
     PlayerMeasurementResponse,
     PlayerTrajectoryRequest,
@@ -58,7 +58,7 @@ responses: dict[int, dict] = {
 )
 @inject
 async def trajectory(
-    request: PlayerTrajectoryRequest, internal_model: PlayerInternalModel = Depends(Provide[Container.internal_model])
+    request: PlayerTrajectoryRequest, internal_model: PlayerInternal = Depends(Provide[Container.internal_model])
 ) -> HALJSONResponse:
     return await ExceptionHandledResponse(internal_model, CreatedTrajectoryResponse(request)).handled()
 
@@ -79,7 +79,7 @@ async def trajectory(
 )
 @inject
 async def game(
-    request: PlayerGameRequest, internal_model: PlayerInternalModel = Depends(Provide[Container.internal_model])
+    request: PlayerGameRequest, internal_model: PlayerInternal = Depends(Provide[Container.internal_model])
 ) -> HALJSONResponse:
     return await ExceptionHandledResponse(internal_model, CreatedGameResponse(request)).handled()
 
@@ -100,6 +100,6 @@ async def game(
 )
 @inject
 async def measurement(
-    request: PlayerMeasurementRequest, internal_model: PlayerInternalModel = Depends(Provide[Container.internal_model])
+    request: PlayerMeasurementRequest, internal_model: PlayerInternal = Depends(Provide[Container.internal_model])
 ) -> HALJSONResponse:
     return await ExceptionHandledResponse(internal_model, CreatedMeasurementResponse(request)).handled()

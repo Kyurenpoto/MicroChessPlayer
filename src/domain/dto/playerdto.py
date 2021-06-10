@@ -11,7 +11,7 @@ from pydantic.fields import Field
 from submodules.fastapi_haljson.src.halmodel import HALBase
 
 
-class PlayerInternalModel(BaseModel):
+class PlayerInternal(BaseModel):
     url_env: AnyHttpUrl
     routes: dict[str, str]
 

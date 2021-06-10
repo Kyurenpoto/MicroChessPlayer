@@ -8,7 +8,7 @@ from typing import NamedTuple
 
 from httpx import HTTPStatusError, RequestError
 from src.application.createdresponse import ICreatedResponse
-from src.domain.dto.playerdto import PlayerInternalModel
+from src.domain.dto.playerdto import PlayerInternal
 from submodules.fastapi_haljson.src.halresponse import (
     HALJSONResponse,
     NotFoundResponse,
@@ -18,7 +18,7 @@ from submodules.fastapi_haljson.src.halresponse import (
 
 
 class ExceptionHandledResponse(NamedTuple):
-    internal_model: PlayerInternalModel
+    internal_model: PlayerInternal
     created: ICreatedResponse
 
     async def handled(self) -> HALJSONResponse:

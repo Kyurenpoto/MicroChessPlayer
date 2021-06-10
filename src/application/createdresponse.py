@@ -9,7 +9,7 @@ from src.domain.dto.playerdto import (
     PlayerErrorResponse,
     PlayerGameRequest,
     PlayerGameResponse,
-    PlayerInternalModel,
+    PlayerInternal,
     PlayerMeasurementRequest,
     PlayerMeasurementResponse,
     PlayerTrajectoryRequest,
@@ -40,22 +40,22 @@ class MeasurementRequestData(NamedTuple):
 class ICreatedResponse(metaclass=ABCMeta):
     @abstractmethod
     async def created(
-        self, internal_model: PlayerInternalModel
+        self, internal_model: PlayerInternal
     ) -> Union[PlayerTrajectoryResponse, PlayerGameResponse, PlayerMeasurementResponse]:
         pass
 
     @abstractmethod
-    def error(self, internal_model: PlayerInternalModel, message: str, error_type: str) -> PlayerErrorResponse:
+    def error(self, internal_model: PlayerInternal, message: str, error_type: str) -> PlayerErrorResponse:
         pass
 
 
 class CreatedTrajectoryResponse(TrajectoryRequestData, ICreatedResponse):
     async def created(
-        self, internal_model: PlayerInternalModel
+        self, internal_model: PlayerInternal
     ) -> Union[PlayerTrajectoryResponse, PlayerGameResponse, PlayerMeasurementResponse]:
         return await MicroChessPlayer(Service()).trajectory(self.request, internal_model, self.name, self.method)
 
-    def error(self, internal_model: PlayerInternalModel, message: str, error_type: str) -> PlayerErrorResponse:
+    def error(self, internal_model: PlayerInternal, message: str, error_type: str) -> PlayerErrorResponse:
         return PlayerErrorResponse(
             links=HALBase.from_routes_with_requested(internal_model.routes, self.name, self.method).links,
             message=message,
@@ -68,11 +68,11 @@ class CreatedTrajectoryResponse(TrajectoryRequestData, ICreatedResponse):
 
 class CreatedGameResponse(GameRequestData, ICreatedResponse):
     async def created(
-        self, internal_model: PlayerInternalModel
+        self, internal_model: PlayerInternal
     ) -> Union[PlayerTrajectoryResponse, PlayerGameResponse, PlayerMeasurementResponse]:
         return await MicroChessPlayer(Service()).game(self.request, internal_model, self.name, self.method)
 
-    def error(self, internal_model: PlayerInternalModel, message: str, error_type: str) -> PlayerErrorResponse:
+    def error(self, internal_model: PlayerInternal, message: str, error_type: str) -> PlayerErrorResponse:
         return PlayerErrorResponse(
             links=HALBase.from_routes_with_requested(internal_model.routes, self.name, self.method).links,
             message=message,
@@ -85,11 +85,11 @@ class CreatedGameResponse(GameRequestData, ICreatedResponse):
 
 class CreatedMeasurementResponse(MeasurementRequestData, ICreatedResponse):
     async def created(
-        self, internal_model: PlayerInternalModel
+        self, internal_model: PlayerInternal
     ) -> Union[PlayerTrajectoryResponse, PlayerGameResponse, PlayerMeasurementResponse]:
         return await MicroChessPlayer(Service()).measurement(self.request, internal_model, self.name, self.method)
 
-    def error(self, internal_model: PlayerInternalModel, message: str, error_type: str) -> PlayerErrorResponse:
+    def error(self, internal_model: PlayerInternal, message: str, error_type: str) -> PlayerErrorResponse:
         return PlayerErrorResponse(
             links=HALBase.from_routes_with_requested(internal_model.routes, self.name, self.method).links,
             message=message,

@@ -11,7 +11,7 @@ from src.domain.dto.playerdto import (
     PlayerAIMeasurement,
     PlayerGameRequest,
     PlayerGameResponse,
-    PlayerInternalModel,
+    PlayerInternal,
     PlayerMeasurementRequest,
     PlayerMeasurementResponse,
     PlayerTrajectoryRequest,
@@ -119,7 +119,7 @@ class MicroChessPlayer(NamedTuple):
         return MicroChessPlayer(Service())
 
     async def trajectory(
-        self, request: PlayerTrajectoryRequest, internal_model: PlayerInternalModel, name: str, method: str
+        self, request: PlayerTrajectoryRequest, internal_model: PlayerInternal, name: str, method: str
     ) -> PlayerTrajectoryResponse:
         produced: Trace = (
             await self.service.trajectory(
@@ -135,7 +135,7 @@ class MicroChessPlayer(NamedTuple):
         )
 
     async def game(
-        self, request: PlayerGameRequest, internal_model: PlayerInternalModel, name: str, method: str
+        self, request: PlayerGameRequest, internal_model: PlayerInternal, name: str, method: str
     ) -> PlayerGameResponse:
         produced: Trace = await self.service.game(
             internal_model.url_env, request.white.url, request.black.url
@@ -149,7 +149,7 @@ class MicroChessPlayer(NamedTuple):
         )
 
     async def measurement(
-        self, request: PlayerMeasurementRequest, internal_model: PlayerInternalModel, name: str, method: str
+        self, request: PlayerMeasurementRequest, internal_model: PlayerInternal, name: str, method: str
     ) -> PlayerMeasurementResponse:
         statistics: Statistics = Statistics.from_traces(
             await self.service.rate(internal_model.url_env, request.white.url, request.black.url).produced(
