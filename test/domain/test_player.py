@@ -3,68 +3,68 @@
 # SPDX-License-Identifier: MIT
 
 import pytest
+from dependency_injector import providers
+from src.config import Container
 from src.domain.dto.playerdto import (
     PlayerAIInfo,
     PlayerAIMeasurement,
+    PlayerAPIInfo,
     PlayerGameRequest,
-    PlayerGameResponse,
-    PlayerInternal,
     PlayerMeasurementRequest,
-    PlayerMeasurementResponse,
     PlayerTrajectoryRequest,
-    PlayerTrajectoryResponse,
 )
 from src.domain.implementation.movement import FEN, SAN
-from src.domain.player import FakeService, MicroChessPlayer
-from submodules.fastapi_haljson.src.halmodel import HALBase
+from src.domain.player import (
+    CreatedGameResponse,
+    CreatedMeasurementResponse,
+    CreatedTrajectoryResponse,
+    FakeService,
+    MicroChessPlayer,
+)
 
 
 @pytest.mark.asyncio
-async def test_trajectory() -> None:
-    assert await MicroChessPlayer(FakeService()).trajectory(
-        PlayerTrajectoryRequest(
-            fens=[FEN.starting(), FEN.first()],
-            white=PlayerAIInfo(url="http://test"),
-            black=PlayerAIInfo(url="http://test"),
-            step=3,
-        ),
-        PlayerInternal(url_env="http://test", routes={"trajectory": ""}),
-        "trajectory",
-        "post",
-    ) == PlayerTrajectoryResponse(
-        links=HALBase.from_routes_with_requested({"trajectory": ""}, "trajectory", "post").links,
-        fens=(([[FEN.starting()] * 2] * 2) + ([[FEN.first()] * 2] * 2)),
-        sans=[[SAN.first()]] * 4,
-        results=[[0, 0]] * 4,
+async def test_trajectory(container: Container) -> None:
+    container.api_info.override(providers.Factory(PlayerAPIInfo, name="trajectory", method="post"))
+
+    assert (
+        await MicroChessPlayer(FakeService()).trajectory(
+            PlayerTrajectoryRequest(
+                fens=[FEN.starting(), FEN.first()],
+                white=PlayerAIInfo(url="http://test"),
+                black=PlayerAIInfo(url="http://test"),
+                step=3,
+            )
+        )
+        == CreatedTrajectoryResponse(
+            (([[FEN.starting()] * 2] * 2) + ([[FEN.first()] * 2] * 2)), [[SAN.first()]] * 4, [[0, 0]] * 4
+        ).created()
     )
 
 
 @pytest.mark.asyncio
-async def test_game() -> None:
-    assert await MicroChessPlayer(FakeService()).game(
-        PlayerGameRequest(white=PlayerAIInfo(url="http://test"), black=PlayerAIInfo(url="http://test")),
-        PlayerInternal(url_env="http://test", routes={"game": ""}),
-        "game",
-        "post",
-    ) == PlayerGameResponse(
-        links=HALBase.from_routes_with_requested({"game": ""}, "game", "post").links,
-        fens=[FEN.starting()],
-        sans=[],
-        result="1-0",
+async def test_game(container: Container) -> None:
+    container.api_info.override(providers.Factory(PlayerAPIInfo, name="game", method="post"))
+
+    assert (
+        await MicroChessPlayer(FakeService()).game(
+            PlayerGameRequest(white=PlayerAIInfo(url="http://test"), black=PlayerAIInfo(url="http://test"))
+        )
+        == CreatedGameResponse([FEN.starting()], [], "1-0").created()
     )
 
 
 @pytest.mark.asyncio
-async def test_measurement() -> None:
-    assert await MicroChessPlayer(FakeService()).measurement(
-        PlayerMeasurementRequest(
-            white=PlayerAIInfo(url="http://test"), black=PlayerAIInfo(url="http://test"), playtime=3
-        ),
-        PlayerInternal(url_env="http://test", routes={"measurement": ""}),
-        "measurement",
-        "post",
-    ) == PlayerMeasurementResponse(
-        links=HALBase.from_routes_with_requested({"measurement": ""}, "measurement", "post").links,
-        white=PlayerAIMeasurement(score=1.5, win=1, draw=1, lose=1),
-        black=PlayerAIMeasurement(score=1.5, win=1, draw=1, lose=1),
+async def test_measurement(container: Container) -> None:
+    container.api_info.override(providers.Factory(PlayerAPIInfo, name="measurement", method="post"))
+
+    assert (
+        await MicroChessPlayer(FakeService()).measurement(
+            PlayerMeasurementRequest(
+                white=PlayerAIInfo(url="http://test"), black=PlayerAIInfo(url="http://test"), playtime=3
+            )
+        )
+        == CreatedMeasurementResponse(
+            PlayerAIMeasurement(score=1.5, win=1, draw=1, lose=1), PlayerAIMeasurement(score=1.5, win=1, draw=1, lose=1)
+        ).created()
     )

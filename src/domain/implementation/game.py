@@ -9,8 +9,7 @@ from typing import NamedTuple
 
 from src.domain.implementation.movement import FEN, SAN, Movement
 from src.domain.implementation.status import Status
-
-from .trace import InfiniteTraceProducable, ProducableTrace, Trace
+from src.domain.implementation.trace import InfiniteTraceProducable, ProducableTrace, Trace
 
 
 class IGame(metaclass=ABCMeta):

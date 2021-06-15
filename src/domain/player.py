@@ -7,8 +7,11 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import Iterable, NamedTuple
 
+from dependency_injector.wiring import Provide, inject
+from src.config import Container
 from src.domain.dto.playerdto import (
     PlayerAIMeasurement,
+    PlayerAPIInfo,
     PlayerGameRequest,
     PlayerGameResponse,
     PlayerInternal,
@@ -111,6 +114,61 @@ class Statistics(dict[Score, int]):
         )
 
 
+class CreatedTrajectoryResponse(NamedTuple):
+    fens: list[list[str]]
+    sans: list[list[str]]
+    results: list[list[float]]
+
+    @inject
+    def created(
+        self,
+        internal_model: PlayerInternal = Provide[Container.internal_model],
+        api_info: PlayerAPIInfo = Provide[Container.api_info],
+    ) -> PlayerTrajectoryResponse:
+        return PlayerTrajectoryResponse(
+            links=HALBase.from_routes_with_requested(internal_model.routes, api_info.name, api_info.method).links,
+            fens=self.fens,
+            sans=self.sans,
+            results=self.results,
+        )
+
+
+class CreatedGameResponse(NamedTuple):
+    fens: list[str]
+    sans: list[str]
+    result: str
+
+    @inject
+    def created(
+        self,
+        internal_model: PlayerInternal = Provide[Container.internal_model],
+        api_info: PlayerAPIInfo = Provide[Container.api_info],
+    ) -> PlayerGameResponse:
+        return PlayerGameResponse(
+            links=HALBase.from_routes_with_requested(internal_model.routes, api_info.name, api_info.method).links,
+            fens=self.fens,
+            sans=self.sans,
+            result=self.result,
+        )
+
+
+class CreatedMeasurementResponse(NamedTuple):
+    white: PlayerAIMeasurement
+    black: PlayerAIMeasurement
+
+    @inject
+    def created(
+        self,
+        internal_model: PlayerInternal = Provide[Container.internal_model],
+        api_info: PlayerAPIInfo = Provide[Container.api_info],
+    ) -> PlayerMeasurementResponse:
+        return PlayerMeasurementResponse(
+            links=HALBase.from_routes_with_requested(internal_model.routes, api_info.name, api_info.method).links,
+            white=self.white,
+            black=self.black,
+        )
+
+
 class MicroChessPlayer(NamedTuple):
     service: IService
 
@@ -118,8 +176,11 @@ class MicroChessPlayer(NamedTuple):
     def from_url(cls) -> MicroChessPlayer:
         return MicroChessPlayer(Service())
 
+    @inject
     async def trajectory(
-        self, request: PlayerTrajectoryRequest, internal_model: PlayerInternal, name: str, method: str
+        self,
+        request: PlayerTrajectoryRequest,
+        internal_model: PlayerInternal = Provide[Container.internal_model],
     ) -> PlayerTrajectoryResponse:
         produced: Trace = (
             await self.service.trajectory(
@@ -127,29 +188,27 @@ class MicroChessPlayer(NamedTuple):
             ).produced(request.fens)
         ).concatenated()
 
-        return PlayerTrajectoryResponse(
-            links=HALBase.from_routes_with_requested(internal_model.routes, name, method).links,
-            fens=produced.fens,
-            sans=produced.sans,
-            results=produced.results,
-        )
+        return CreatedTrajectoryResponse(fens=produced.fens, sans=produced.sans, results=produced.results).created()
 
+    @inject
     async def game(
-        self, request: PlayerGameRequest, internal_model: PlayerInternal, name: str, method: str
+        self,
+        request: PlayerGameRequest,
+        internal_model: PlayerInternal = Provide[Container.internal_model],
     ) -> PlayerGameResponse:
         produced: Trace = await self.service.game(
             internal_model.url_env, request.white.url, request.black.url
         ).produced()
 
-        return PlayerGameResponse(
-            links=HALBase.from_routes_with_requested(internal_model.routes, name, method).links,
-            fens=produced.fens[0],
-            sans=produced.sans[0],
-            result=Score.from_results(produced.results[0]),
-        )
+        return CreatedGameResponse(
+            fens=produced.fens[0], sans=produced.sans[0], result=Score.from_results(produced.results[0])
+        ).created()
 
+    @inject
     async def measurement(
-        self, request: PlayerMeasurementRequest, internal_model: PlayerInternal, name: str, method: str
+        self,
+        request: PlayerMeasurementRequest,
+        internal_model: PlayerInternal = Provide[Container.internal_model],
     ) -> PlayerMeasurementResponse:
         statistics: Statistics = Statistics.from_traces(
             await self.service.rate(internal_model.url_env, request.white.url, request.black.url).produced(
@@ -157,8 +216,4 @@ class MicroChessPlayer(NamedTuple):
             )
         )
 
-        return PlayerMeasurementResponse(
-            links=HALBase.from_routes_with_requested(internal_model.routes, name, method).links,
-            white=statistics.white(),
-            black=statistics.black(),
-        )
+        return CreatedMeasurementResponse(white=statistics.white(), black=statistics.black()).created()

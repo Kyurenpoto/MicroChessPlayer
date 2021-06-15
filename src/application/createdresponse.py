@@ -2,10 +2,17 @@
 
 # SPDX-License-Identifier: MIT
 
+from __future__ import annotations
+
 from abc import ABCMeta, abstractmethod
 from typing import NamedTuple, Union
 
+from dependency_injector import providers
+from dependency_injector.wiring import Provide, inject
+from src.config import Container, container
 from src.domain.dto.playerdto import (
+    PlayerAIInfo,
+    PlayerAPIInfo,
     PlayerErrorResponse,
     PlayerGameRequest,
     PlayerGameResponse,
@@ -39,62 +46,84 @@ class MeasurementRequestData(NamedTuple):
 
 class ICreatedResponse(metaclass=ABCMeta):
     @abstractmethod
-    async def created(
-        self, internal_model: PlayerInternal
-    ) -> Union[PlayerTrajectoryResponse, PlayerGameResponse, PlayerMeasurementResponse]:
+    async def normal(self) -> Union[PlayerTrajectoryResponse, PlayerGameResponse, PlayerMeasurementResponse]:
         pass
 
     @abstractmethod
-    def error(self, internal_model: PlayerInternal, message: str, error_type: str) -> PlayerErrorResponse:
+    def error(self, message: str, error_type: str) -> PlayerErrorResponse:
         pass
 
 
-class CreatedTrajectoryResponse(TrajectoryRequestData, ICreatedResponse):
-    async def created(
-        self, internal_model: PlayerInternal
-    ) -> Union[PlayerTrajectoryResponse, PlayerGameResponse, PlayerMeasurementResponse]:
-        return await MicroChessPlayer(Service()).trajectory(self.request, internal_model, self.name, self.method)
+class CreatedErrorResponse(NamedTuple):
+    message: str
+    location: str
+    param: str
+    value: Union[
+        tuple[list[str], PlayerAIInfo, PlayerAIInfo, int],
+        tuple[PlayerAIInfo, PlayerAIInfo],
+        tuple[PlayerAIInfo, PlayerAIInfo, int],
+    ]
+    error: str
 
-    def error(self, internal_model: PlayerInternal, message: str, error_type: str) -> PlayerErrorResponse:
+    @inject
+    def created(
+        self,
+        internal_model: PlayerInternal = Provide[Container.internal_model],
+        api_info: PlayerAPIInfo = Provide[Container.api_info],
+    ) -> PlayerErrorResponse:
         return PlayerErrorResponse(
-            links=HALBase.from_routes_with_requested(internal_model.routes, self.name, self.method).links,
-            message=message,
-            location="body",
-            param="fens, white, black, step",
-            value=(self.request.fens, self.request.white, self.request.black, self.request.step),
-            error=error_type,
+            links=HALBase.from_routes_with_requested(internal_model.routes, api_info.name, api_info.method).links,
+            message=self.message,
+            location=self.location,
+            param=self.param,
+            value=self.value,
+            error=self.error,
         )
+
+
+class CreatedTrajectoryResponse(TrajectoryRequestData, ICreatedResponse):
+    async def normal(self) -> Union[PlayerTrajectoryResponse, PlayerGameResponse, PlayerMeasurementResponse]:
+        container.api_info.override(providers.Factory(PlayerAPIInfo, name="trajectory", method="post"))
+
+        return await MicroChessPlayer(Service()).trajectory(self.request)
+
+    def error(self, message: str, error_type: str) -> PlayerErrorResponse:
+        return CreatedErrorResponse(
+            message,
+            "body",
+            "fens, white, black, step",
+            (self.request.fens, self.request.white, self.request.black, self.request.step),
+            error_type,
+        ).created()
 
 
 class CreatedGameResponse(GameRequestData, ICreatedResponse):
-    async def created(
-        self, internal_model: PlayerInternal
-    ) -> Union[PlayerTrajectoryResponse, PlayerGameResponse, PlayerMeasurementResponse]:
-        return await MicroChessPlayer(Service()).game(self.request, internal_model, self.name, self.method)
+    async def normal(self) -> Union[PlayerTrajectoryResponse, PlayerGameResponse, PlayerMeasurementResponse]:
+        container.api_info.override(providers.Factory(PlayerAPIInfo, name="game", method="post"))
 
-    def error(self, internal_model: PlayerInternal, message: str, error_type: str) -> PlayerErrorResponse:
-        return PlayerErrorResponse(
-            links=HALBase.from_routes_with_requested(internal_model.routes, self.name, self.method).links,
-            message=message,
-            location="body",
-            param="white, black",
-            value=(self.request.white, self.request.black),
-            error=error_type,
-        )
+        return await MicroChessPlayer(Service()).game(self.request)
+
+    def error(self, message: str, error_type: str) -> PlayerErrorResponse:
+        return CreatedErrorResponse(
+            message,
+            "body",
+            "white, black",
+            (self.request.white, self.request.black),
+            error_type,
+        ).created()
 
 
 class CreatedMeasurementResponse(MeasurementRequestData, ICreatedResponse):
-    async def created(
-        self, internal_model: PlayerInternal
-    ) -> Union[PlayerTrajectoryResponse, PlayerGameResponse, PlayerMeasurementResponse]:
-        return await MicroChessPlayer(Service()).measurement(self.request, internal_model, self.name, self.method)
+    async def normal(self) -> Union[PlayerTrajectoryResponse, PlayerGameResponse, PlayerMeasurementResponse]:
+        container.api_info.override(providers.Factory(PlayerAPIInfo, name="measurement", method="post"))
 
-    def error(self, internal_model: PlayerInternal, message: str, error_type: str) -> PlayerErrorResponse:
-        return PlayerErrorResponse(
-            links=HALBase.from_routes_with_requested(internal_model.routes, self.name, self.method).links,
-            message=message,
-            location="body",
-            param="white, black, playtime",
-            value=(self.request.white, self.request.black, self.request.playtime),
-            error=error_type,
-        )
+        return await MicroChessPlayer(Service()).measurement(self.request)
+
+    def error(self, message: str, error_type: str) -> PlayerErrorResponse:
+        return CreatedErrorResponse(
+            message,
+            "body",
+            "white, black, playtime",
+            (self.request.white, self.request.black, self.request.playtime),
+            error_type,
+        ).created()

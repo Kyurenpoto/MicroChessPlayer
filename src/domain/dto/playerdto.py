@@ -16,6 +16,11 @@ class PlayerInternal(BaseModel):
     routes: dict[str, str]
 
 
+class PlayerAPIInfo(BaseModel):
+    name: str
+    method: str
+
+
 class PlayerAIInfo(BaseModel):
     url: AnyHttpUrl = Field(
         ...,
