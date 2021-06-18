@@ -28,20 +28,14 @@ from submodules.fastapi_haljson.src.halmodel import HALBase
 
 class TrajectoryRequestData(NamedTuple):
     request: PlayerTrajectoryRequest
-    name: str = "trajectory"
-    method: str = "post"
 
 
 class GameRequestData(NamedTuple):
     request: PlayerGameRequest
-    name: str = "game"
-    method: str = "post"
 
 
 class MeasurementRequestData(NamedTuple):
     request: PlayerMeasurementRequest
-    name: str = "measurement"
-    method: str = "post"
 
 
 class ICreatedResponse(metaclass=ABCMeta):
@@ -56,7 +50,6 @@ class ICreatedResponse(metaclass=ABCMeta):
 
 class CreatedErrorResponse(NamedTuple):
     message: str
-    location: str
     param: str
     value: Union[
         tuple[list[str], PlayerAIInfo, PlayerAIInfo, int],
@@ -74,7 +67,7 @@ class CreatedErrorResponse(NamedTuple):
         return PlayerErrorResponse(
             links=HALBase.from_routes_with_requested(internal_model.routes, api_info.name, api_info.method).links,
             message=self.message,
-            location=self.location,
+            location="body",
             param=self.param,
             value=self.value,
             error=self.error,
@@ -90,7 +83,6 @@ class CreatedTrajectoryResponse(TrajectoryRequestData, ICreatedResponse):
     def error(self, message: str, error_type: str) -> PlayerErrorResponse:
         return CreatedErrorResponse(
             message,
-            "body",
             "fens, white, black, step",
             (self.request.fens, self.request.white, self.request.black, self.request.step),
             error_type,
@@ -106,7 +98,6 @@ class CreatedGameResponse(GameRequestData, ICreatedResponse):
     def error(self, message: str, error_type: str) -> PlayerErrorResponse:
         return CreatedErrorResponse(
             message,
-            "body",
             "white, black",
             (self.request.white, self.request.black),
             error_type,
@@ -122,7 +113,6 @@ class CreatedMeasurementResponse(MeasurementRequestData, ICreatedResponse):
     def error(self, message: str, error_type: str) -> PlayerErrorResponse:
         return CreatedErrorResponse(
             message,
-            "body",
             "white, black, playtime",
             (self.request.white, self.request.black, self.request.playtime),
             error_type,
