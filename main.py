@@ -39,7 +39,7 @@ def run(port: int) -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="MicroChess API Server")
+    parser = argparse.ArgumentParser(description="MicroChess Player")
     parser.add_argument("--port", type=int, default=8000, help="Port to bind socket of API server")
     parser.add_argument("--url_env", type=str, help="URL of MicroChess Environment API server")
 
