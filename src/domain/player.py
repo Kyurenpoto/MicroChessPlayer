@@ -20,10 +20,10 @@ from src.domain.dto.playerdto import (
     PlayerTrajectoryRequest,
     PlayerTrajectoryResponse,
 )
-from src.domain.implementation.game import FakeGame, Game, IGame
-from src.domain.implementation.measurement import FakeMeasurement, IMeasurement, Measurement
 from src.domain.implementation.trace import Trace
-from src.domain.implementation.trajectory import FakeTrajectory, ITrajectory, Trajectory
+from src.usecase.game import FakeGame, Game, IGame
+from src.usecase.measurement import FakeMeasurement, IMeasurement, Measurement
+from src.usecase.trajectory import FakeTrajectory, ITrajectory, Trajectory
 from submodules.fastapi_haljson.src.halmodel import HALBase
 
 
