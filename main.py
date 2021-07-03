@@ -9,7 +9,7 @@ from fastapi import FastAPI
 
 from src.application import createdresponse
 from src.config import container
-from src.domain import player
+from src.converter import requestconverter, responseconverter
 from src.presentation.api.playerapi import router
 
 app: FastAPI = FastAPI()
@@ -27,7 +27,7 @@ def wire(url_env: str) -> None:
             "method": "",
         }
     )
-    app.state.container.wire(modules=[createdresponse, player])
+    app.state.container.wire(modules=[createdresponse, requestconverter, responseconverter])
 
 
 def unwire() -> None:
@@ -40,7 +40,7 @@ def run(port: int) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MicroChess Player")
-    parser.add_argument("--port", type=int, default=8000, help="Port to bind socket of API server")
+    parser.add_argument("--port", type=int, default=8000, help="Port to bind socket of Player")
     parser.add_argument("--url_env", type=str, help="URL of MicroChess Environment API server")
 
     args = parser.parse_args()

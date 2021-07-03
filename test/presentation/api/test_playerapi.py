@@ -211,22 +211,10 @@ async def test_measurement(async_client: AsyncClient) -> None:
             Response(
                 status.HTTP_200_OK,
                 json={
-                    "statuses": [2],
-                    "legal_moves": [[]],
-                },
-            ),
-            Response(
-                status.HTTP_200_OK,
-                json={
-                    "statuses": [3],
-                    "legal_moves": [[]],
-                },
-            ),
-            Response(
-                status.HTTP_200_OK,
-                json={
-                    "statuses": [1],
+                    "statuses": [2, 3, 1],
                     "legal_moves": [
+                        [],
+                        [],
                         [
                             "e4e5",
                             "e4e6",
@@ -239,7 +227,7 @@ async def test_measurement(async_client: AsyncClient) -> None:
                             "g4h6",
                             "h4g5",
                             "h5h6",
-                        ]
+                        ],
                     ],
                 },
             ),

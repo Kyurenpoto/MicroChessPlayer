@@ -5,22 +5,17 @@
 import pytest
 from dependency_injector import providers
 from src.config import Container
+from src.converter.responseconverter import GameResponseToDTO, MeasurementResponseToDTO, TrajectoryResponseToDTO
 from src.domain.dto.playerdto import (
     PlayerAIInfo,
-    PlayerAIMeasurement,
     PlayerAPIInfo,
     PlayerGameRequest,
     PlayerMeasurementRequest,
     PlayerTrajectoryRequest,
 )
 from src.domain.implementation.movement import FEN, SAN
-from src.domain.player import (
-    CreatedGameResponse,
-    CreatedMeasurementResponse,
-    CreatedTrajectoryResponse,
-    FakeService,
-    MicroChessPlayer,
-)
+from src.domain.player import FakeService, MicroChessPlayer
+from src.usecase.responsemodel import MeasurementInfo
 
 
 @pytest.mark.asyncio
@@ -36,9 +31,9 @@ async def test_trajectory(container: Container) -> None:
                 step=3,
             )
         )
-        == CreatedTrajectoryResponse(
+        == TrajectoryResponseToDTO(
             (([[FEN.starting()] * 2] * 2) + ([[FEN.first()] * 2] * 2)), [[SAN.first()]] * 4, [[0, 0]] * 4
-        ).created()
+        ).convert()
     )
 
 
@@ -50,7 +45,7 @@ async def test_game(container: Container) -> None:
         await MicroChessPlayer(FakeService()).game(
             PlayerGameRequest(white=PlayerAIInfo(url="http://test"), black=PlayerAIInfo(url="http://test"))
         )
-        == CreatedGameResponse([FEN.starting()], [], "1-0").created()
+        == GameResponseToDTO([FEN.starting()], [], "1-0").convert()
     )
 
 
@@ -64,7 +59,5 @@ async def test_measurement(container: Container) -> None:
                 white=PlayerAIInfo(url="http://test"), black=PlayerAIInfo(url="http://test"), playtime=3
             )
         )
-        == CreatedMeasurementResponse(
-            PlayerAIMeasurement(score=1.5, win=1, draw=1, lose=1), PlayerAIMeasurement(score=1.5, win=1, draw=1, lose=1)
-        ).created()
+        == MeasurementResponseToDTO(MeasurementInfo(1.5, 1, 1, 1), MeasurementInfo(1.5, 1, 1, 1)).convert()
     )
