@@ -7,6 +7,7 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import NamedTuple
 
+from src.adapter.responseboundary import GameResponseBoundary
 from src.domain.implementation.movement import FEN, Movement
 from src.domain.implementation.score import Score
 from src.domain.implementation.status import Status
@@ -22,26 +23,28 @@ class ResultTrace(Trace):
 
 class IGame(metaclass=ABCMeta):
     @abstractmethod
-    async def executed(self) -> GameResponseModel:
+    async def executed(self, request_model: GameRequestModel) -> None:
         pass
 
 
 class GameData(NamedTuple):
-    request_model: GameRequestModel
+    response_boundary: GameResponseBoundary
 
 
 class Game(GameData, IGame):
-    async def executed(self) -> GameResponseModel:
-        return ResultTrace._make(
-            await ProducableTrace(
-                Status(self.request_model.env),
-                Movement(self.request_model.env, self.request_model.ai_white),
-                Movement(self.request_model.env, self.request_model.ai_black),
-                InfiniteTraceProducable(),
-            ).produced([FEN.starting()])
-        ).to_response()
+    async def executed(self, request_model: GameRequestModel) -> None:
+        await self.response_boundary.response(
+            ResultTrace._make(
+                await ProducableTrace(
+                    Status(request_model.env),
+                    Movement(request_model.env, request_model.ai_white),
+                    Movement(request_model.env, request_model.ai_black),
+                    InfiniteTraceProducable(),
+                ).produced([FEN.starting()])
+            ).to_response()
+        )
 
 
-class FakeGame(IGame):
-    async def executed(self) -> GameResponseModel:
-        return GameResponseModel([FEN.starting()], [], "1-0")
+class FakeGame(GameData, IGame):
+    async def executed(self, request_model: GameRequestModel) -> None:
+        await self.response_boundary.response(GameResponseModel([FEN.starting()], [], "1-0"))

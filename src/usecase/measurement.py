@@ -7,6 +7,7 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import NamedTuple
 
+from src.adapter.responseboundary import MeasurementResponseBoundary
 from src.domain.implementation.enumerable import Mappable
 from src.domain.implementation.movement import FEN, Movement
 from src.domain.implementation.score import Score
@@ -51,26 +52,30 @@ class Statistics(dict[Score, int]):
 
 class IMeasurement(metaclass=ABCMeta):
     @abstractmethod
-    async def executed(self) -> MeasurementResponseModel:
+    async def executed(self, request_model: MeasurementRequestModel) -> None:
         pass
 
 
 class MeasurementData(NamedTuple):
-    request_model: MeasurementRequestModel
+    response_boundary: MeasurementResponseBoundary
 
 
 class Measurement(MeasurementData, IMeasurement):
-    async def executed(self) -> MeasurementResponseModel:
-        return Statistics.from_traces(
-            await ProducableTrace(
-                Status(self.request_model.env),
-                Movement(self.request_model.env, self.request_model.ai_white),
-                Movement(self.request_model.env, self.request_model.ai_black),
-                InfiniteTraceProducable(),
-            ).produced([FEN.starting()] * self.request_model.playtime)
-        ).to_response()
+    async def executed(self, request_model: MeasurementRequestModel) -> None:
+        await self.response_boundary.response(
+            Statistics.from_traces(
+                await ProducableTrace(
+                    Status(request_model.env),
+                    Movement(request_model.env, request_model.ai_white),
+                    Movement(request_model.env, request_model.ai_black),
+                    InfiniteTraceProducable(),
+                ).produced([FEN.starting()] * request_model.playtime)
+            ).to_response()
+        )
 
 
-class FakeMeasurement(IMeasurement):
-    async def executed(self) -> MeasurementResponseModel:
-        return MeasurementResponseModel(MeasurementInfo(1.5, 1, 1, 1), MeasurementInfo(1.5, 1, 1, 1))
+class FakeMeasurement(MeasurementData, IMeasurement):
+    async def executed(self, request_model: MeasurementRequestModel) -> None:
+        await self.response_boundary.response(
+            MeasurementResponseModel(MeasurementInfo(1.5, 1, 1, 1), MeasurementInfo(1.5, 1, 1, 1))
+        )

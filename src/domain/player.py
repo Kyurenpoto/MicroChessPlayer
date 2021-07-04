@@ -4,11 +4,8 @@
 
 from __future__ import annotations
 
-from abc import ABCMeta, abstractmethod
 from typing import NamedTuple
 
-from src.converter.requestconverter import GameRequestToModel, MeasurementRequestToModel, TrajectoryRequestToModel
-from src.converter.responseconverter import GameResponseToDTO, MeasurementResponseToDTO, TrajectoryResponseToDTO
 from src.domain.dto.playerdto import (
     PlayerGameRequest,
     PlayerGameResponse,
@@ -17,59 +14,35 @@ from src.domain.dto.playerdto import (
     PlayerTrajectoryRequest,
     PlayerTrajectoryResponse,
 )
-from src.usecase.game import FakeGame, Game, IGame
-from src.usecase.measurement import FakeMeasurement, IMeasurement, Measurement
-from src.usecase.trajectory import FakeTrajectory, ITrajectory, Trajectory
+from src.framework.intent.gameintent import FakeGameIntent, GameIntent
+from src.framework.intent.measurementintent import FakeMeasurementIntent, MeasurementIntent
+from src.framework.intent.trajectoryintent import FakeTrajectoryIntent, TrajectoryIntent
 
 
-class IService(metaclass=ABCMeta):
-    @abstractmethod
-    def trajectory(self, request: PlayerTrajectoryRequest) -> ITrajectory:
-        pass
-
-    @abstractmethod
-    def game(self, request: PlayerGameRequest) -> IGame:
-        pass
-
-    @abstractmethod
-    def rate(self, request: PlayerMeasurementRequest) -> IMeasurement:
-        pass
+class Service(NamedTuple):
+    trajectory: TrajectoryIntent = TrajectoryIntent.from_usecase()
+    game: GameIntent = GameIntent.from_usecase()
+    measurement: MeasurementIntent = MeasurementIntent.from_usecase()
 
 
-class Service(IService):
-    def trajectory(self, request: PlayerTrajectoryRequest) -> ITrajectory:
-        return Trajectory(TrajectoryRequestToModel.from_dto(request).convert())
-
-    def game(self, request: PlayerGameRequest) -> IGame:
-        return Game(GameRequestToModel.from_dto(request).convert())
-
-    def rate(self, request: PlayerMeasurementRequest) -> IMeasurement:
-        return Measurement(MeasurementRequestToModel.from_dto(request).convert())
-
-
-class FakeService(IService):
-    def trajectory(self, request: PlayerTrajectoryRequest) -> ITrajectory:
-        return FakeTrajectory()
-
-    def game(self, request: PlayerGameRequest) -> IGame:
-        return FakeGame()
-
-    def rate(self, request: PlayerMeasurementRequest) -> IMeasurement:
-        return FakeMeasurement()
+class FakeService(Service):
+    trajectory: TrajectoryIntent = FakeTrajectoryIntent.from_usecase()
+    game: GameIntent = FakeGameIntent.from_usecase()
+    measurement: MeasurementIntent = FakeMeasurementIntent.from_usecase()
 
 
 class MicroChessPlayer(NamedTuple):
-    service: IService
+    service: Service
 
     @classmethod
     def from_url(cls) -> MicroChessPlayer:
         return MicroChessPlayer(Service())
 
     async def trajectory(self, request: PlayerTrajectoryRequest) -> PlayerTrajectoryResponse:
-        return TrajectoryResponseToDTO.from_model(await self.service.trajectory(request).executed()).convert()
+        return await self.service.trajectory.executed(request)
 
     async def game(self, request: PlayerGameRequest) -> PlayerGameResponse:
-        return GameResponseToDTO.from_model(await self.service.game(request).executed()).convert()
+        return await self.service.game.executed(request)
 
     async def measurement(self, request: PlayerMeasurementRequest) -> PlayerMeasurementResponse:
-        return MeasurementResponseToDTO.from_model(await self.service.rate(request).executed()).convert()
+        return await self.service.measurement.executed(request)
