@@ -22,7 +22,12 @@ from src.domain.dto.playerdto import (
     PlayerTrajectoryRequest,
     PlayerTrajectoryResponse,
 )
-from src.domain.player import MicroChessPlayer, Service
+from src.framework.intent.gameintent import GameIntent
+from src.framework.intent.measurementintent import MeasurementIntent
+from src.framework.intent.trajectoryintent import TrajectoryIntent
+from src.usecase.game import NormalGameFactory
+from src.usecase.measurement import NormalMeasurementFactory
+from src.usecase.trajectory import NormalTrajectoryFactory
 from submodules.fastapi_haljson.src.halmodel import HALBase
 
 
@@ -78,7 +83,7 @@ class CreatedTrajectoryResponse(TrajectoryRequestData, ICreatedResponse):
     async def normal(self) -> Union[PlayerTrajectoryResponse, PlayerGameResponse, PlayerMeasurementResponse]:
         container.api_info.override(providers.Factory(PlayerAPIInfo, name="trajectory", method="post"))
 
-        return await MicroChessPlayer(Service()).trajectory(self.request)
+        return await TrajectoryIntent.from_usecase_factory(NormalTrajectoryFactory()).executed(self.request)
 
     def error(self, message: str, error_type: str) -> PlayerErrorResponse:
         return CreatedErrorResponse(
@@ -93,7 +98,7 @@ class CreatedGameResponse(GameRequestData, ICreatedResponse):
     async def normal(self) -> Union[PlayerTrajectoryResponse, PlayerGameResponse, PlayerMeasurementResponse]:
         container.api_info.override(providers.Factory(PlayerAPIInfo, name="game", method="post"))
 
-        return await MicroChessPlayer(Service()).game(self.request)
+        return await GameIntent.from_usecase_factory(NormalGameFactory()).executed(self.request)
 
     def error(self, message: str, error_type: str) -> PlayerErrorResponse:
         return CreatedErrorResponse(
@@ -108,7 +113,7 @@ class CreatedMeasurementResponse(MeasurementRequestData, ICreatedResponse):
     async def normal(self) -> Union[PlayerTrajectoryResponse, PlayerGameResponse, PlayerMeasurementResponse]:
         container.api_info.override(providers.Factory(PlayerAPIInfo, name="measurement", method="post"))
 
-        return await MicroChessPlayer(Service()).measurement(self.request)
+        return await MeasurementIntent.from_usecase_factory(NormalMeasurementFactory()).executed(self.request)
 
     def error(self, message: str, error_type: str) -> PlayerErrorResponse:
         return CreatedErrorResponse(
