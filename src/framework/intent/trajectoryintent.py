@@ -13,7 +13,7 @@ from src.converter.responseconverter import TrajectoryResponseToDTO
 from src.domain.dto.playerdto import PlayerTrajectoryRequest, PlayerTrajectoryResponse
 from src.usecase.requestmodel import TrajectoryRequestModel
 from src.usecase.responsemodel import TrajectoryResponseModel
-from src.usecase.trajectory import FakeTrajectory, ITrajectory, Trajectory
+from src.usecase.trajectory import ITrajectory, TrajectoryFactory
 
 
 class TrajectoryRequestIntentData(NamedTuple):
@@ -42,10 +42,10 @@ class TrajectoryIntent(NamedTuple):
     response_intent: TrajectoryResponseIntent
 
     @classmethod
-    def from_usecase(cls) -> TrajectoryIntent:
+    def from_usecase_factory(cls, factory: TrajectoryFactory) -> TrajectoryIntent:
         response_intent: TrajectoryResponseIntent = TrajectoryResponseIntent()
 
-        return TrajectoryIntent(TrajectoryRequestIntent(Trajectory(response_intent)), response_intent)
+        return TrajectoryIntent(TrajectoryRequestIntent(factory.createdTrajectory(response_intent)), response_intent)
 
     async def push(self, request: PlayerTrajectoryRequest) -> None:
         await self.request_intent.request(TrajectoryRequestToModel.from_dto(request).convert())
@@ -57,11 +57,3 @@ class TrajectoryIntent(NamedTuple):
         await self.push(request)
 
         return await self.pull()
-
-
-class FakeTrajectoryIntent(TrajectoryIntent):
-    @classmethod
-    def from_usecase(cls) -> FakeTrajectoryIntent:
-        response_intent: TrajectoryResponseIntent = TrajectoryResponseIntent()
-
-        return FakeTrajectoryIntent(TrajectoryRequestIntent(FakeTrajectory(response_intent)), response_intent)

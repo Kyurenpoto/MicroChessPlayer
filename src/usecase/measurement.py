@@ -79,3 +79,19 @@ class FakeMeasurement(MeasurementData, IMeasurement):
         await self.response_boundary.response(
             MeasurementResponseModel(MeasurementInfo(1.5, 1, 1, 1), MeasurementInfo(1.5, 1, 1, 1))
         )
+
+
+class MeasurementFactory(metaclass=ABCMeta):
+    @abstractmethod
+    def createdMeasurement(self, response_boundary: MeasurementResponseBoundary) -> IMeasurement:
+        pass
+
+
+class NormalMeasurementFactory(MeasurementFactory):
+    def createdMeasurement(self, response_boundary: MeasurementResponseBoundary) -> IMeasurement:
+        return Measurement(response_boundary)
+
+
+class FakeMeasurementFactory(MeasurementFactory):
+    def createdMeasurement(self, response_boundary: MeasurementResponseBoundary) -> IMeasurement:
+        return FakeMeasurement(response_boundary)

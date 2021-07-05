@@ -59,3 +59,19 @@ class FakeTrajectory(TrajectoryData, ITrajectory):
                 ).concatenated()
             )
         )
+
+
+class TrajectoryFactory(metaclass=ABCMeta):
+    @abstractmethod
+    def createdTrajectory(self, response_boundary: TrajectoryResponseBoundary) -> ITrajectory:
+        pass
+
+
+class NormalTrajectoryFactory(TrajectoryFactory):
+    def createdTrajectory(self, response_boundary: TrajectoryResponseBoundary) -> ITrajectory:
+        return Trajectory(response_boundary)
+
+
+class FakeTrajectoryFactory(TrajectoryFactory):
+    def createdTrajectory(self, response_boundary: TrajectoryResponseBoundary) -> ITrajectory:
+        return FakeTrajectory(response_boundary)

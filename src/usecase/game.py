@@ -48,3 +48,19 @@ class Game(GameData, IGame):
 class FakeGame(GameData, IGame):
     async def executed(self, request_model: GameRequestModel) -> None:
         await self.response_boundary.response(GameResponseModel([FEN.starting()], [], "1-0"))
+
+
+class GameFactory(metaclass=ABCMeta):
+    @abstractmethod
+    def createdGame(self, response_boundary: GameResponseBoundary) -> IGame:
+        pass
+
+
+class NormalGameFactory(GameFactory):
+    def createdGame(self, response_boundary: GameResponseBoundary) -> IGame:
+        return Game(response_boundary)
+
+
+class FakeGameFactory(GameFactory):
+    def createdGame(self, response_boundary: GameResponseBoundary) -> IGame:
+        return FakeGame(response_boundary)

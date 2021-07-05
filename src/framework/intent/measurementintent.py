@@ -11,7 +11,7 @@ from src.adapter.responseboundary import MeasurementResponseBoundary
 from src.converter.requestconverter import MeasurementRequestToModel
 from src.converter.responseconverter import MeasurementResponseToDTO
 from src.domain.dto.playerdto import PlayerMeasurementRequest, PlayerMeasurementResponse
-from src.usecase.measurement import FakeMeasurement, IMeasurement, Measurement
+from src.usecase.measurement import IMeasurement, MeasurementFactory
 from src.usecase.requestmodel import MeasurementRequestModel
 from src.usecase.responsemodel import MeasurementResponseModel
 
@@ -44,10 +44,10 @@ class MeasurementIntent(NamedTuple):
     response_intent: MeasurementResponseIntent
 
     @classmethod
-    def from_usecase(cls) -> MeasurementIntent:
+    def from_usecase_factory(cls, factory: MeasurementFactory) -> MeasurementIntent:
         response_intent: MeasurementResponseIntent = MeasurementResponseIntent()
 
-        return MeasurementIntent(MeasurementRequestIntent(Measurement(response_intent)), response_intent)
+        return MeasurementIntent(MeasurementRequestIntent(factory.createdMeasurement(response_intent)), response_intent)
 
     async def push(self, request: PlayerMeasurementRequest) -> None:
         await self.request_intent.request(MeasurementRequestToModel.from_dto(request).convert())
@@ -59,11 +59,3 @@ class MeasurementIntent(NamedTuple):
         await self.push(request)
 
         return await self.pull()
-
-
-class FakeMeasurementIntent(MeasurementIntent):
-    @classmethod
-    def from_usecase(cls) -> FakeMeasurementIntent:
-        response_intent: MeasurementResponseIntent = MeasurementResponseIntent()
-
-        return FakeMeasurementIntent(MeasurementRequestIntent(FakeMeasurement(response_intent)), response_intent)

@@ -11,7 +11,7 @@ from src.adapter.responseboundary import GameResponseBoundary
 from src.converter.requestconverter import GameRequestToModel
 from src.converter.responseconverter import GameResponseToDTO
 from src.domain.dto.playerdto import PlayerGameRequest, PlayerGameResponse
-from src.usecase.game import FakeGame, Game, IGame
+from src.usecase.game import FakeGame, Game, GameFactory, IGame
 from src.usecase.requestmodel import GameRequestModel
 from src.usecase.responsemodel import GameResponseModel
 
@@ -42,10 +42,10 @@ class GameIntent(NamedTuple):
     response_intent: GameResponseIntent
 
     @classmethod
-    def from_usecase(cls) -> GameIntent:
+    def from_usecase_factory(cls, factory: GameFactory) -> GameIntent:
         response_intent: GameResponseIntent = GameResponseIntent()
 
-        return GameIntent(GameRequestIntent(Game(response_intent)), response_intent)
+        return GameIntent(GameRequestIntent(factory.createdGame(response_intent)), response_intent)
 
     async def push(self, request: PlayerGameRequest) -> None:
         await self.request_intent.request(GameRequestToModel.from_dto(request).convert())
@@ -57,11 +57,3 @@ class GameIntent(NamedTuple):
         await self.push(request)
 
         return await self.pull()
-
-
-class FakeGameIntent(GameIntent):
-    @classmethod
-    def from_usecase(cls) -> FakeGameIntent:
-        response_intent: GameResponseIntent = GameResponseIntent()
-
-        return FakeGameIntent(GameRequestIntent(FakeGame(response_intent)), response_intent)

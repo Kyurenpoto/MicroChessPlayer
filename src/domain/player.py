@@ -14,29 +14,28 @@ from src.domain.dto.playerdto import (
     PlayerTrajectoryRequest,
     PlayerTrajectoryResponse,
 )
-from src.framework.intent.gameintent import FakeGameIntent, GameIntent
-from src.framework.intent.measurementintent import FakeMeasurementIntent, MeasurementIntent
-from src.framework.intent.trajectoryintent import FakeTrajectoryIntent, TrajectoryIntent
+from src.framework.intent.gameintent import GameIntent
+from src.framework.intent.measurementintent import MeasurementIntent
+from src.framework.intent.trajectoryintent import TrajectoryIntent
+from src.usecase.game import FakeGameFactory, NormalGameFactory
+from src.usecase.measurement import FakeMeasurementFactory, NormalMeasurementFactory
+from src.usecase.trajectory import FakeTrajectoryFactory, NormalTrajectoryFactory
 
 
 class Service(NamedTuple):
-    trajectory: TrajectoryIntent = TrajectoryIntent.from_usecase()
-    game: GameIntent = GameIntent.from_usecase()
-    measurement: MeasurementIntent = MeasurementIntent.from_usecase()
+    trajectory: TrajectoryIntent = TrajectoryIntent.from_usecase_factory(NormalTrajectoryFactory())
+    game: GameIntent = GameIntent.from_usecase_factory(NormalGameFactory())
+    measurement: MeasurementIntent = MeasurementIntent.from_usecase_factory(NormalMeasurementFactory())
 
 
 class FakeService(Service):
-    trajectory: TrajectoryIntent = FakeTrajectoryIntent.from_usecase()
-    game: GameIntent = FakeGameIntent.from_usecase()
-    measurement: MeasurementIntent = FakeMeasurementIntent.from_usecase()
+    trajectory: TrajectoryIntent = TrajectoryIntent.from_usecase_factory(FakeTrajectoryFactory())
+    game: GameIntent = GameIntent.from_usecase_factory(FakeGameFactory())
+    measurement: MeasurementIntent = MeasurementIntent.from_usecase_factory(FakeMeasurementFactory())
 
 
 class MicroChessPlayer(NamedTuple):
     service: Service
-
-    @classmethod
-    def from_url(cls) -> MicroChessPlayer:
-        return MicroChessPlayer(Service())
 
     async def trajectory(self, request: PlayerTrajectoryRequest) -> PlayerTrajectoryResponse:
         return await self.service.trajectory.executed(request)
