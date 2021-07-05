@@ -6,7 +6,7 @@ import pytest
 import respx
 from fastapi import status
 from httpx import AsyncClient, Response
-from src.domain.implementation.movement import FEN, SAN
+from src.entity.movement import FEN, SAN
 from submodules.fastapi_haljson.src.halmodel import HALBase
 
 

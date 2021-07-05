@@ -7,9 +7,9 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import Callable, Iterable, NamedTuple
 
-from src.domain.implementation.enumerable import Enumerable, Indexable, Mappable
-from src.domain.implementation.movement import FEN, IMovement
-from src.domain.implementation.status import IStatus
+from src.entity.enumerable import Enumerable, Indexable, Mappable
+from src.entity.movement import FEN, IMovement
+from src.entity.status import IStatus
 
 
 class CorrectionMappable(Indexable):

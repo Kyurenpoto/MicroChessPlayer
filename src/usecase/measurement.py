@@ -8,11 +8,11 @@ from abc import ABCMeta, abstractmethod
 from typing import NamedTuple
 
 from src.adapter.responseboundary import MeasurementResponseBoundary
-from src.domain.implementation.enumerable import Mappable
-from src.domain.implementation.movement import FEN, Movement
-from src.domain.implementation.score import Score
-from src.domain.implementation.status import Status
-from src.domain.implementation.trace import InfiniteTraceProducable, ProducableTrace, Trace
+from src.entity.enumerable import Mappable
+from src.entity.movement import FEN, Movement
+from src.entity.score import Score
+from src.entity.status import Status
+from src.entity.trace import InfiniteTraceProducable, ProducableTrace, Trace
 from src.usecase.requestmodel import MeasurementRequestModel
 from src.usecase.responsemodel import MeasurementInfo, MeasurementResponseModel
 

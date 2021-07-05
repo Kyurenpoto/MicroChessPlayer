@@ -8,9 +8,9 @@ from abc import ABCMeta, abstractmethod
 from typing import NamedTuple
 
 from src.adapter.responseboundary import TrajectoryResponseBoundary
-from src.domain.implementation.movement import FEN, SAN, Movement
-from src.domain.implementation.status import Status
-from src.domain.implementation.trace import ColoredTrace, FiniteTraceProducable, ProducableTrace, Trace
+from src.entity.movement import FEN, SAN, Movement
+from src.entity.status import Status
+from src.entity.trace import ColoredTrace, FiniteTraceProducable, ProducableTrace, Trace
 from src.usecase.requestmodel import TrajectoryRequestModel
 from src.usecase.responsemodel import TrajectoryResponseModel
 

@@ -5,10 +5,10 @@
 from typing import NamedTuple
 
 import pytest
-from src.domain.implementation.enumerable import Mappable
-from src.domain.implementation.movement import FEN, SAN, FakeBlackMovement, FakeWhiteMovement, IMovement
-from src.domain.implementation.status import FakeCheckmateStatus, FakeStalemateStatus, FakeStatus, IStatus
-from src.domain.implementation.trace import (
+from src.entity.enumerable import Mappable
+from src.entity.movement import FEN, SAN, FakeBlackMovement, FakeWhiteMovement, IMovement
+from src.entity.status import FakeCheckmateStatus, FakeStalemateStatus, FakeStatus, IStatus
+from src.entity.trace import (
     ColoredTrace,
     CorrectableTrace,
     FiniteTraceProducable,
