@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from dependency_injector.wiring import Provide, inject
 from src.config import Container
-from src.domain.dto.playerdto import (
+from src.framework.dto.playerdto import (
     PlayerGameRequest,
     PlayerInternal,
     PlayerMeasurementRequest,

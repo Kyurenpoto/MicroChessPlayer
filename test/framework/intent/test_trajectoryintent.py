@@ -6,7 +6,7 @@ import pytest
 from dependency_injector import providers
 from src.config import Container
 from src.converter.responseconverter import TrajectoryResponseToDTO
-from src.domain.dto.playerdto import PlayerAIInfo, PlayerAPIInfo, PlayerTrajectoryRequest
+from src.framework.dto.playerdto import PlayerAIInfo, PlayerAPIInfo, PlayerTrajectoryRequest
 from src.entity.movement import FEN, SAN
 from src.framework.intent.trajectoryintent import TrajectoryIntent
 from src.usecase.trajectory import FakeTrajectoryFactory

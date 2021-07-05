@@ -10,7 +10,7 @@ from typing import NamedTuple, Union
 from dependency_injector import providers
 from dependency_injector.wiring import Provide, inject
 from src.config import Container, container
-from src.domain.dto.playerdto import (
+from src.framework.dto.playerdto import (
     PlayerAIInfo,
     PlayerAPIInfo,
     PlayerErrorResponse,

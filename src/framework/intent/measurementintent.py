@@ -10,7 +10,7 @@ from src.adapter.requestboundary import MeasurementRequestBoundary
 from src.adapter.responseboundary import MeasurementResponseBoundary
 from src.converter.requestconverter import MeasurementRequestToModel
 from src.converter.responseconverter import MeasurementResponseToDTO
-from src.domain.dto.playerdto import PlayerMeasurementRequest, PlayerMeasurementResponse
+from src.framework.dto.playerdto import PlayerMeasurementRequest, PlayerMeasurementResponse
 from src.usecase.measurement import IMeasurement, MeasurementFactory
 from src.usecase.requestmodel import MeasurementRequestModel
 from src.usecase.responsemodel import MeasurementResponseModel

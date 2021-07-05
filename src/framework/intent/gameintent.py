@@ -10,7 +10,7 @@ from src.adapter.requestboundary import GameRequestBoundary
 from src.adapter.responseboundary import GameResponseBoundary
 from src.converter.requestconverter import GameRequestToModel
 from src.converter.responseconverter import GameResponseToDTO
-from src.domain.dto.playerdto import PlayerGameRequest, PlayerGameResponse
+from src.framework.dto.playerdto import PlayerGameRequest, PlayerGameResponse
 from src.usecase.game import FakeGame, Game, GameFactory, IGame
 from src.usecase.requestmodel import GameRequestModel
 from src.usecase.responsemodel import GameResponseModel

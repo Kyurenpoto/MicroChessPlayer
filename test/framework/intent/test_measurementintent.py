@@ -6,7 +6,7 @@ import pytest
 from dependency_injector import providers
 from src.config import Container
 from src.converter.responseconverter import MeasurementResponseToDTO
-from src.domain.dto.playerdto import PlayerAIInfo, PlayerAPIInfo, PlayerMeasurementRequest
+from src.framework.dto.playerdto import PlayerAIInfo, PlayerAPIInfo, PlayerMeasurementRequest
 from src.framework.intent.measurementintent import MeasurementIntent
 from src.usecase.measurement import FakeMeasurementFactory
 from src.usecase.responsemodel import MeasurementInfo

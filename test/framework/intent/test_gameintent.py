@@ -6,7 +6,7 @@ import pytest
 from dependency_injector import providers
 from src.config import Container
 from src.converter.responseconverter import GameResponseToDTO
-from src.domain.dto.playerdto import PlayerAIInfo, PlayerAPIInfo, PlayerGameRequest
+from src.framework.dto.playerdto import PlayerAIInfo, PlayerAPIInfo, PlayerGameRequest
 from src.entity.movement import FEN
 from src.framework.intent.gameintent import GameIntent
 from src.usecase.game import FakeGameFactory

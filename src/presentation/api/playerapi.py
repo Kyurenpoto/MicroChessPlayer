@@ -4,7 +4,7 @@
 
 from fastapi import APIRouter, status
 from src.application.createdresponse import CreatedGameResponse, CreatedMeasurementResponse, CreatedTrajectoryResponse
-from src.domain.dto.playerdto import (
+from src.framework.dto.playerdto import (
     PlayerErrorResponse,
     PlayerGameRequest,
     PlayerGameResponse,
