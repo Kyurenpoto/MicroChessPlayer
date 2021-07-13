@@ -27,3 +27,20 @@ class MeasurementRequestModel(NamedTuple):
     ai_white: URLString
     ai_black: URLString
     playtime: int
+
+
+class NextFENRequestModel(NamedTuple):
+    next_fen: URLString
+    fens: list[str]
+    sans: list[str]
+
+
+class NextSANRequestModel(NamedTuple):
+    next_san: URLString
+    fens: list[str]
+    legal_moves: list[list[str]]
+
+
+class FENStatusRequestModel(NamedTuple):
+    fen_status: URLString
+    fens: list[str]

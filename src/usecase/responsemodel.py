@@ -32,6 +32,19 @@ class MeasurementResponseModel(NamedTuple):
     black_info: MeasurementInfo
 
 
+class NextFENResponseModel(NamedTuple):
+    next_fens: list[str]
+
+
+class NextSANResponseModel(NamedTuple):
+    next_sans: list[str]
+
+
+class FENStatusResponseModel(NamedTuple):
+    statuses: list[int]
+    legal_moves: list[list[str]]
+
+
 class ErrorResponseModel(NamedTuple):
     message: str
     location: str
