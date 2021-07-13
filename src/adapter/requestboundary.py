@@ -5,7 +5,7 @@
 
 from abc import ABCMeta, abstractmethod
 
-from src.usecase.requestmodel import GameRequestModel, MeasurementRequestModel, TrajectoryRequestModel
+from src.model.requestmodel import GameRequestModel, MeasurementRequestModel, TrajectoryRequestModel
 
 
 class TrajectoryRequestBoundary(metaclass=ABCMeta):

@@ -12,8 +12,8 @@ from src.entity.movement import FEN, Movement
 from src.entity.score import Score
 from src.entity.status import Status
 from src.entity.trace import InfiniteTraceProducable, ProducableTrace, Trace
-from src.usecase.requestmodel import GameRequestModel
-from src.usecase.responsemodel import GameResponseModel
+from src.model.requestmodel import GameRequestModel
+from src.model.responsemodel import GameResponseModel
 
 
 class ResultTrace(Trace):

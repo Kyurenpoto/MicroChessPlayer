@@ -5,7 +5,7 @@
 
 from abc import ABCMeta, abstractmethod
 
-from src.usecase.responsemodel import GameResponseModel, MeasurementResponseModel, TrajectoryResponseModel
+from src.model.responsemodel import GameResponseModel, MeasurementResponseModel, TrajectoryResponseModel
 
 
 class TrajectoryResponseBoundary(metaclass=ABCMeta):

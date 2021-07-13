@@ -12,8 +12,8 @@ from src.converter.requestconverter import MeasurementRequestToModel
 from src.converter.responseconverter import MeasurementResponseToDTO
 from src.framework.dto.playerdto import PlayerMeasurementRequest, PlayerMeasurementResponse
 from src.usecase.measurement import IMeasurement, MeasurementFactory
-from src.usecase.requestmodel import MeasurementRequestModel
-from src.usecase.responsemodel import MeasurementResponseModel
+from src.model.requestmodel import MeasurementRequestModel
+from src.model.responsemodel import MeasurementResponseModel
 
 
 class MeasurementRequestIntentData(NamedTuple):

@@ -12,8 +12,8 @@ from src.converter.requestconverter import GameRequestToModel
 from src.converter.responseconverter import GameResponseToDTO
 from src.framework.dto.playerdto import PlayerGameRequest, PlayerGameResponse
 from src.usecase.game import FakeGame, Game, GameFactory, IGame
-from src.usecase.requestmodel import GameRequestModel
-from src.usecase.responsemodel import GameResponseModel
+from src.model.requestmodel import GameRequestModel
+from src.model.responsemodel import GameResponseModel
 
 
 class GameRequestIntentData(NamedTuple):

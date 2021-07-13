@@ -2,7 +2,6 @@
 
 # SPDX-License-Identifier: MIT
 
-
 from typing import NamedTuple
 
 from src.usecase.typemodel import URLString

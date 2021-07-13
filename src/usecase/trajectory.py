@@ -11,8 +11,8 @@ from src.adapter.responseboundary import TrajectoryResponseBoundary
 from src.entity.movement import FEN, SAN, Movement
 from src.entity.status import Status
 from src.entity.trace import ColoredTrace, FiniteTraceProducable, ProducableTrace, Trace
-from src.usecase.requestmodel import TrajectoryRequestModel
-from src.usecase.responsemodel import TrajectoryResponseModel
+from src.model.requestmodel import TrajectoryRequestModel
+from src.model.responsemodel import TrajectoryResponseModel
 
 
 class ITrajectory(metaclass=ABCMeta):

@@ -9,7 +9,7 @@ from src.converter.responseconverter import MeasurementResponseToDTO
 from src.framework.dto.playerdto import PlayerAIInfo, PlayerAPIInfo, PlayerMeasurementRequest
 from src.framework.intent.measurementintent import MeasurementIntent
 from src.usecase.measurement import FakeMeasurementFactory
-from src.usecase.responsemodel import MeasurementInfo
+from src.model.responsemodel import MeasurementInfo
 
 
 @pytest.mark.asyncio

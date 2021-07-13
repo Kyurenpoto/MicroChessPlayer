@@ -2,7 +2,6 @@
 
 # SPDX-License-Identifier: MIT
 
-
 from __future__ import annotations
 
 from dependency_injector.wiring import Provide, inject
@@ -13,7 +12,11 @@ from src.framework.dto.playerdto import (
     PlayerMeasurementRequest,
     PlayerTrajectoryRequest,
 )
-from src.usecase.requestmodel import GameRequestModel, MeasurementRequestModel, TrajectoryRequestModel
+from src.model.requestmodel import (
+    GameRequestModel,
+    MeasurementRequestModel,
+    TrajectoryRequestModel,
+)
 from src.usecase.typemodel import URLString
 
 

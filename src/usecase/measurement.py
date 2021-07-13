@@ -13,8 +13,8 @@ from src.entity.movement import FEN, Movement
 from src.entity.score import Score
 from src.entity.status import Status
 from src.entity.trace import InfiniteTraceProducable, ProducableTrace, Trace
-from src.usecase.requestmodel import MeasurementRequestModel
-from src.usecase.responsemodel import MeasurementInfo, MeasurementResponseModel
+from src.model.requestmodel import MeasurementRequestModel
+from src.model.responsemodel import MeasurementInfo, MeasurementResponseModel
 
 
 class Statistics(dict[Score, int]):

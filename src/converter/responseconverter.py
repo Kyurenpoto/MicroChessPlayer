@@ -2,7 +2,6 @@
 
 # SPDX-License-Identifier: MIT
 
-
 from __future__ import annotations
 
 from dependency_injector.wiring import Provide, inject
@@ -16,7 +15,7 @@ from src.framework.dto.playerdto import (
     PlayerMeasurementResponse,
     PlayerTrajectoryResponse,
 )
-from src.usecase.responsemodel import (
+from src.model.responsemodel import (
     ErrorResponseModel,
     GameResponseModel,
     MeasurementInfo,

@@ -11,8 +11,8 @@ from src.adapter.responseboundary import TrajectoryResponseBoundary
 from src.converter.requestconverter import TrajectoryRequestToModel
 from src.converter.responseconverter import TrajectoryResponseToDTO
 from src.framework.dto.playerdto import PlayerTrajectoryRequest, PlayerTrajectoryResponse
-from src.usecase.requestmodel import TrajectoryRequestModel
-from src.usecase.responsemodel import TrajectoryResponseModel
+from src.model.requestmodel import TrajectoryRequestModel
+from src.model.responsemodel import TrajectoryResponseModel
 from src.usecase.trajectory import ITrajectory, TrajectoryFactory
 
 
