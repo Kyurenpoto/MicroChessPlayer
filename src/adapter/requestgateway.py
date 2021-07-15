@@ -4,7 +4,7 @@
 
 from abc import ABC, abstractmethod
 
-from src.usecase.requestmodel import FENStatusRequestModel, NextFENRequestModel, NextSANRequestModel
+from src.model.requestmodel import FENStatusRequestModel, NextFENRequestModel, NextSANRequestModel
 
 
 class NextFENRequestGateway(ABC):

@@ -4,7 +4,7 @@
 
 from abc import ABC, abstractmethod
 
-from src.usecase.responsemodel import FENStatusResponseModel, NextFENResponseModel, NextSANResponseModel
+from src.model.responsemodel import FENStatusResponseModel, NextFENResponseModel, NextSANResponseModel
 
 
 class NextFENResponseGateway(ABC):

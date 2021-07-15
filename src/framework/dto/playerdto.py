@@ -206,3 +206,11 @@ class PlayerErrorResponse(HALBase):
         ...,
         description="Error type",
     )
+
+
+class PlayerRequestErrorResponse(PlayerErrorResponse):
+    pass
+
+
+class PlayerHTTPStatusErrorResponse(PlayerErrorResponse):
+    pass

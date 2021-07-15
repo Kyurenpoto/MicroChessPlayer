@@ -2,9 +2,9 @@
 
 # SPDX-License-Identifier: MIT
 
-from typing import NamedTuple, Union
+from __future__ import annotations
 
-from src.usecase.typemodel import URLString
+from typing import NamedTuple, Union
 
 
 class TrajectoryResponseModel(NamedTuple):
@@ -46,11 +46,21 @@ class FENStatusResponseModel(NamedTuple):
 
 class ErrorResponseModel(NamedTuple):
     message: str
-    location: str
-    param: str
-    value: Union[
-        tuple[URLString, list[str], URLString, URLString, int],
-        tuple[URLString, URLString, URLString],
-        tuple[URLString, URLString, URLString, int],
-    ]
     error: str
+
+
+class RequestErrorResponseModel(ErrorResponseModel):
+    @classmethod
+    def from_message(cls, message: str) -> RequestErrorResponseModel:
+        return RequestErrorResponseModel(message, "request.RequestError")
+
+
+class HTTPStatusErrorResponseModel(ErrorResponseModel):
+    @classmethod
+    def from_message(cls, message: str) -> HTTPStatusErrorResponseModel:
+        return HTTPStatusErrorResponseModel(message, "request.HTTPStatusError")
+
+
+TrajectoryResponsableModel = Union[TrajectoryResponseModel, RequestErrorResponseModel, HTTPStatusErrorResponseModel]
+GameResponsableModel = Union[GameResponseModel, RequestErrorResponseModel, HTTPStatusErrorResponseModel]
+MeasurementResponsableModel = Union[MeasurementResponseModel, RequestErrorResponseModel, HTTPStatusErrorResponseModel]
