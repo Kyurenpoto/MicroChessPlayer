@@ -5,22 +5,22 @@
 
 from abc import ABCMeta, abstractmethod
 
-from src.model.responsemodel import GameResponseModel, MeasurementResponseModel, TrajectoryResponseModel
+from src.model.responsemodel import GameResponsableModel, MeasurementResponsableModel, TrajectoryResponsableModel
 
 
 class TrajectoryResponseBoundary(metaclass=ABCMeta):
     @abstractmethod
-    async def response(self, response_model: TrajectoryResponseModel) -> None:
+    async def response(self, response_model: TrajectoryResponsableModel) -> None:
         pass
 
 
 class GameResponseBoundary(metaclass=ABCMeta):
     @abstractmethod
-    async def response(self, response_model: GameResponseModel) -> None:
+    async def response(self, response_model: GameResponsableModel) -> None:
         pass
 
 
 class MeasurementResponseBoundary(metaclass=ABCMeta):
     @abstractmethod
-    async def response(self, response_model: MeasurementResponseModel) -> None:
+    async def response(self, response_model: MeasurementResponsableModel) -> None:
         pass

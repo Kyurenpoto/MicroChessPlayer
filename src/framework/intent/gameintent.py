@@ -4,16 +4,21 @@
 
 from __future__ import annotations
 
-from typing import NamedTuple
+from typing import Any, Callable, NamedTuple, Union
 
 from src.adapter.requestboundary import GameRequestBoundary
 from src.adapter.responseboundary import GameResponseBoundary
 from src.converter.requestconverter import GameRequestToModel
-from src.converter.responseconverter import GameResponseToDTO
-from src.framework.dto.playerdto import PlayerGameRequest, PlayerGameResponse
-from src.usecase.game import FakeGame, Game, GameFactory, IGame
+from src.converter.responseconverter import GameResponseToDTO, HTTPStatusErrorResponseToDTO, RequestErrorResponseToDTO
+from src.framework.dto.playerdto import (
+    PlayerGameRequest,
+    PlayerGameResponse,
+    PlayerHTTPStatusErrorResponse,
+    PlayerRequestErrorResponse,
+)
 from src.model.requestmodel import GameRequestModel
-from src.model.responsemodel import GameResponseModel
+from src.model.responsemodel import GameResponsableModel
+from src.usecase.game import GameFactory, IGame
 
 
 class GameRequestIntentData(NamedTuple):
@@ -26,15 +31,46 @@ class GameRequestIntent(GameRequestIntentData, GameRequestBoundary):
 
 
 class GameResponseIntentData(NamedTuple):
-    response_model: list[GameResponseModel] = []
+    response_model: list[GameResponsableModel] = []
 
 
 class GameResponseIntent(GameResponseIntentData, GameResponseBoundary):
-    async def response(self, response_model: GameResponseModel) -> None:
+    async def response(self, response_model: GameResponsableModel) -> None:
         self.response_model.append(response_model)
 
-    async def pull(self) -> GameResponseModel:
+    async def pull(self) -> GameResponsableModel:
         return self.response_model[0]
+
+
+ResponseType = Union[PlayerGameResponse, PlayerRequestErrorResponse, PlayerHTTPStatusErrorResponse]
+
+
+class GameResonsableConverter(NamedTuple):
+    converters: dict[
+        str,
+        Union[
+            Callable[[Any], GameResponseToDTO],
+            Callable[[Any], RequestErrorResponseToDTO],
+            Callable[[Any], HTTPStatusErrorResponseToDTO],
+        ],
+    ]
+
+    @classmethod
+    def from_request_dto(cls, request_dto: PlayerGameRequest) -> GameResonsableConverter:
+        return GameResonsableConverter(
+            {
+                "GameResponseModel": (lambda model: GameResponseToDTO.from_model(model)),
+                "RequestErrorResponseModel": (
+                    lambda model: RequestErrorResponseToDTO.from_model_with_request_dto(model, request_dto)
+                ),
+                "HTTPStatusErrorResponseModel": (
+                    lambda model: HTTPStatusErrorResponseToDTO.from_model_with_request_dto(model, request_dto)
+                ),
+            }
+        )
+
+    def convert(self, model: GameResponsableModel) -> ResponseType:
+        return self.converters[type(model).__name__](model).convert()
 
 
 class GameIntent(NamedTuple):
@@ -50,10 +86,10 @@ class GameIntent(NamedTuple):
     async def push(self, request: PlayerGameRequest) -> None:
         await self.request_intent.request(GameRequestToModel.from_dto(request).convert())
 
-    async def pull(self) -> PlayerGameResponse:
-        return GameResponseToDTO.from_model(await self.response_intent.pull()).convert()
+    async def pull(self, request: PlayerGameRequest) -> ResponseType:
+        return GameResonsableConverter.from_request_dto(request).convert(await self.response_intent.pull())
 
-    async def executed(self, request: PlayerGameRequest) -> PlayerGameResponse:
+    async def executed(self, request: PlayerGameRequest) -> ResponseType:
         await self.push(request)
 
-        return await self.pull()
+        return await self.pull(request)

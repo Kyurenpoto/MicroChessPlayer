@@ -16,9 +16,11 @@ from src.framework.dto.playerdto import (
     PlayerErrorResponse,
     PlayerGameRequest,
     PlayerGameResponse,
+    PlayerHTTPStatusErrorResponse,
     PlayerInternal,
     PlayerMeasurementRequest,
     PlayerMeasurementResponse,
+    PlayerRequestErrorResponse,
     PlayerTrajectoryRequest,
     PlayerTrajectoryResponse,
 )
@@ -43,9 +45,18 @@ class MeasurementRequestData(NamedTuple):
     request: PlayerMeasurementRequest
 
 
+ResponsableType = Union[
+    PlayerTrajectoryResponse,
+    PlayerGameResponse,
+    PlayerMeasurementResponse,
+    PlayerRequestErrorResponse,
+    PlayerHTTPStatusErrorResponse,
+]
+
+
 class ICreatedResponse(metaclass=ABCMeta):
     @abstractmethod
-    async def normal(self) -> Union[PlayerTrajectoryResponse, PlayerGameResponse, PlayerMeasurementResponse]:
+    async def normal(self) -> ResponsableType:
         pass
 
     @abstractmethod
@@ -80,7 +91,7 @@ class CreatedErrorResponse(NamedTuple):
 
 
 class CreatedTrajectoryResponse(TrajectoryRequestData, ICreatedResponse):
-    async def normal(self) -> Union[PlayerTrajectoryResponse, PlayerGameResponse, PlayerMeasurementResponse]:
+    async def normal(self) -> ResponsableType:
         container.api_info.override(providers.Factory(PlayerAPIInfo, name="trajectory", method="post"))
 
         return await TrajectoryIntent.from_usecase_factory(NormalTrajectoryFactory()).executed(self.request)
@@ -95,7 +106,7 @@ class CreatedTrajectoryResponse(TrajectoryRequestData, ICreatedResponse):
 
 
 class CreatedGameResponse(GameRequestData, ICreatedResponse):
-    async def normal(self) -> Union[PlayerTrajectoryResponse, PlayerGameResponse, PlayerMeasurementResponse]:
+    async def normal(self) -> ResponsableType:
         container.api_info.override(providers.Factory(PlayerAPIInfo, name="game", method="post"))
 
         return await GameIntent.from_usecase_factory(NormalGameFactory()).executed(self.request)
@@ -110,7 +121,7 @@ class CreatedGameResponse(GameRequestData, ICreatedResponse):
 
 
 class CreatedMeasurementResponse(MeasurementRequestData, ICreatedResponse):
-    async def normal(self) -> Union[PlayerTrajectoryResponse, PlayerGameResponse, PlayerMeasurementResponse]:
+    async def normal(self) -> ResponsableType:
         container.api_info.override(providers.Factory(PlayerAPIInfo, name="measurement", method="post"))
 
         return await MeasurementIntent.from_usecase_factory(NormalMeasurementFactory()).executed(self.request)

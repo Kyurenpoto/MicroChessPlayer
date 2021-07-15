@@ -4,22 +4,29 @@
 
 from __future__ import annotations
 
+from typing import Any, NamedTuple, Union
+
 from dependency_injector.wiring import Provide, inject
 from src.config import Container
 from src.framework.dto.playerdto import (
     PlayerAIMeasurement,
     PlayerAPIInfo,
-    PlayerErrorResponse,
+    PlayerGameRequest,
     PlayerGameResponse,
+    PlayerHTTPStatusErrorResponse,
     PlayerInternal,
+    PlayerMeasurementRequest,
     PlayerMeasurementResponse,
+    PlayerRequestErrorResponse,
+    PlayerTrajectoryRequest,
     PlayerTrajectoryResponse,
 )
 from src.model.responsemodel import (
-    ErrorResponseModel,
     GameResponseModel,
+    HTTPStatusErrorResponseModel,
     MeasurementInfo,
     MeasurementResponseModel,
+    RequestErrorResponseModel,
     TrajectoryResponseModel,
 )
 from submodules.fastapi_haljson.src.halmodel import HALBase
@@ -27,8 +34,8 @@ from submodules.fastapi_haljson.src.halmodel import HALBase
 
 class TrajectoryResponseToDTO(TrajectoryResponseModel):
     @classmethod
-    def from_model(cls, dto: TrajectoryResponseModel) -> TrajectoryResponseToDTO:
-        return TrajectoryResponseToDTO._make(dto)
+    def from_model(cls, model: TrajectoryResponseModel) -> TrajectoryResponseToDTO:
+        return TrajectoryResponseToDTO._make(model)
 
     @inject
     def convert(
@@ -46,8 +53,8 @@ class TrajectoryResponseToDTO(TrajectoryResponseModel):
 
 class GameResponseToDTO(GameResponseModel):
     @classmethod
-    def from_model(cls, dto: GameResponseModel) -> GameResponseToDTO:
-        return GameResponseToDTO._make(dto)
+    def from_model(cls, model: GameResponseModel) -> GameResponseToDTO:
+        return GameResponseToDTO._make(model)
 
     @inject
     def convert(
@@ -65,8 +72,8 @@ class GameResponseToDTO(GameResponseModel):
 
 class MeasurementInfoToDTO(MeasurementInfo):
     @classmethod
-    def from_model(cls, dto: MeasurementInfo) -> MeasurementInfoToDTO:
-        return MeasurementInfoToDTO._make(dto)
+    def from_model(cls, model: MeasurementInfo) -> MeasurementInfoToDTO:
+        return MeasurementInfoToDTO._make(model)
 
     def convert(self) -> PlayerAIMeasurement:
         return PlayerAIMeasurement(score=self.score, win=self.win, lose=self.lose, draw=self.draw)
@@ -74,8 +81,8 @@ class MeasurementInfoToDTO(MeasurementInfo):
 
 class MeasurementResponseToDTO(MeasurementResponseModel):
     @classmethod
-    def from_model(cls, dto: MeasurementResponseModel) -> MeasurementResponseToDTO:
-        return MeasurementResponseToDTO._make(dto)
+    def from_model(cls, model: MeasurementResponseModel) -> MeasurementResponseToDTO:
+        return MeasurementResponseToDTO._make(model)
 
     @inject
     def convert(
@@ -90,22 +97,57 @@ class MeasurementResponseToDTO(MeasurementResponseModel):
         )
 
 
-class ErrorResponseToDTO(ErrorResponseModel):
+class RequestErrorResponseToDTO(NamedTuple):
+    model: RequestErrorResponseModel
+    dto_dict: dict[str, Any]
+
     @classmethod
-    def from_model(cls, dto: ErrorResponseModel) -> ErrorResponseToDTO:
-        return ErrorResponseToDTO._make(dto)
+    def from_model_with_request_dto(
+        cls,
+        model: RequestErrorResponseModel,
+        request_dto: Union[PlayerTrajectoryRequest, PlayerGameRequest, PlayerMeasurementRequest],
+    ) -> RequestErrorResponseToDTO:
+        return RequestErrorResponseToDTO(model, request_dto.dict())
 
     @inject
     def convert(
         self,
         internal_model: PlayerInternal = Provide[Container.internal_model],
         api_info: PlayerAPIInfo = Provide[Container.api_info],
-    ) -> PlayerErrorResponse:
-        return PlayerErrorResponse(
+    ) -> PlayerRequestErrorResponse:
+        return PlayerRequestErrorResponse(
             links=HALBase.from_routes_with_requested(internal_model.routes, api_info.name, api_info.method).links,
-            message=self.message,
-            location=self.location,
-            param=self.param,
-            value=self.value,
-            error=self.error,
+            message=self.model.message,
+            location="body",
+            param=", ".join(self.dto_dict.keys()),
+            value=list(self.dto_dict.values()),
+            error=self.model.error,
+        )
+
+
+class HTTPStatusErrorResponseToDTO(NamedTuple):
+    model: HTTPStatusErrorResponseModel
+    dto_dict: dict[str, Any]
+
+    @classmethod
+    def from_model_with_request_dto(
+        cls,
+        model: HTTPStatusErrorResponseModel,
+        request_dto: Union[PlayerTrajectoryRequest, PlayerGameRequest, PlayerMeasurementRequest],
+    ) -> HTTPStatusErrorResponseToDTO:
+        return HTTPStatusErrorResponseToDTO(model, request_dto.dict())
+
+    @inject
+    def convert(
+        self,
+        internal_model: PlayerInternal = Provide[Container.internal_model],
+        api_info: PlayerAPIInfo = Provide[Container.api_info],
+    ) -> PlayerHTTPStatusErrorResponse:
+        return PlayerHTTPStatusErrorResponse(
+            links=HALBase.from_routes_with_requested(internal_model.routes, api_info.name, api_info.method).links,
+            message=self.model.message,
+            location="body",
+            param=", ".join(self.dto_dict.keys()),
+            value=list(self.dto_dict.values()),
+            error=self.model.error,
         )
