@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from typing import NamedTuple
 
 from httpx import HTTPStatusError, RequestError
@@ -16,7 +16,7 @@ from src.model.requestmodel import TrajectoryRequestModel
 from src.model.responsemodel import HTTPStatusErrorResponseModel, RequestErrorResponseModel, TrajectoryResponseModel
 
 
-class ITrajectory(metaclass=ABCMeta):
+class ITrajectory(ABC):
     @abstractmethod
     async def executed(self, request_model: TrajectoryRequestModel) -> None:
         pass
@@ -78,7 +78,7 @@ class FakeTrajectory(TrajectoryData, ITrajectory):
         )
 
 
-class TrajectoryFactory(metaclass=ABCMeta):
+class TrajectoryFactory(ABC):
     @abstractmethod
     def createdTrajectory(self, response_boundary: TrajectoryResponseBoundary) -> ITrajectory:
         pass

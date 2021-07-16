@@ -2,7 +2,7 @@
 
 # SPDX-License-Identifier: MIT
 
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum, auto
 
@@ -10,7 +10,7 @@ from src.entity.enumerable import Mappable
 from src.entity.fenstatus import RequestedFENStatus
 
 
-class IStatus(metaclass=ABCMeta):
+class IStatus(ABC):
     @abstractmethod
     async def status(self, fens: list[str]) -> tuple[list[float], list[list[str]]]:
         pass

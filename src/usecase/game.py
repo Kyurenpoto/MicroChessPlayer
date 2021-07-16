@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from typing import NamedTuple
 
 from httpx import HTTPStatusError, RequestError
@@ -22,7 +22,7 @@ class ResultTrace(Trace):
         return GameResponseModel(self.fens[0], self.sans[0], Score.from_results(self.results[0]))
 
 
-class IGame(metaclass=ABCMeta):
+class IGame(ABC):
     @abstractmethod
     async def executed(self, request_model: GameRequestModel) -> None:
         pass
@@ -67,7 +67,7 @@ class FakeGame(GameData, IGame):
         await self.response_boundary.response(GameResponseModel([FEN.starting()], [], "1-0"))
 
 
-class GameFactory(metaclass=ABCMeta):
+class GameFactory(ABC):
     @abstractmethod
     def createdGame(self, response_boundary: GameResponseBoundary) -> IGame:
         pass

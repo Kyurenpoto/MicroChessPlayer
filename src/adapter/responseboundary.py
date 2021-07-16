@@ -3,24 +3,24 @@
 # SPDX-License-Identifier: MIT
 
 
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 
 from src.model.responsemodel import GameResponsableModel, MeasurementResponsableModel, TrajectoryResponsableModel
 
 
-class TrajectoryResponseBoundary(metaclass=ABCMeta):
+class TrajectoryResponseBoundary(ABC):
     @abstractmethod
     async def response(self, response_model: TrajectoryResponsableModel) -> None:
         pass
 
 
-class GameResponseBoundary(metaclass=ABCMeta):
+class GameResponseBoundary(ABC):
     @abstractmethod
     async def response(self, response_model: GameResponsableModel) -> None:
         pass
 
 
-class MeasurementResponseBoundary(metaclass=ABCMeta):
+class MeasurementResponseBoundary(ABC):
     @abstractmethod
     async def response(self, response_model: MeasurementResponsableModel) -> None:
         pass

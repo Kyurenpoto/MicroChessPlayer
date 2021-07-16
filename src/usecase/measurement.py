@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from typing import NamedTuple
 
 from httpx import HTTPStatusError, RequestError
@@ -56,7 +56,7 @@ class Statistics(dict[Score, int]):
         return MeasurementResponseModel(self.white(), self.black())
 
 
-class IMeasurement(metaclass=ABCMeta):
+class IMeasurement(ABC):
     @abstractmethod
     async def executed(self, request_model: MeasurementRequestModel) -> None:
         pass
@@ -103,7 +103,7 @@ class FakeMeasurement(MeasurementData, IMeasurement):
         )
 
 
-class MeasurementFactory(metaclass=ABCMeta):
+class MeasurementFactory(ABC):
     @abstractmethod
     def createdMeasurement(self, response_boundary: MeasurementResponseBoundary) -> IMeasurement:
         pass

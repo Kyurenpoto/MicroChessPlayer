@@ -2,14 +2,14 @@
 
 # SPDX-License-Identifier: MIT
 
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from typing import NamedTuple
 
 from src.entity.nextfen import RequestedNextFEN
 from src.entity.nextsan import RequestedNextSAN
 
 
-class IMovement(metaclass=ABCMeta):
+class IMovement(ABC):
     @abstractmethod
     async def movement(self, fens: list[str], legal_moves: list[list[str]]) -> tuple[list[str], list[str]]:
         pass

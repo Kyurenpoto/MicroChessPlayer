@@ -3,24 +3,24 @@
 # SPDX-License-Identifier: MIT
 
 
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 
 from src.model.requestmodel import GameRequestModel, MeasurementRequestModel, TrajectoryRequestModel
 
 
-class TrajectoryRequestBoundary(metaclass=ABCMeta):
+class TrajectoryRequestBoundary(ABC):
     @abstractmethod
     async def request(self, request_model: TrajectoryRequestModel) -> None:
         pass
 
 
-class GameRequestBoundary(metaclass=ABCMeta):
+class GameRequestBoundary(ABC):
     @abstractmethod
     async def request(self, request_model: GameRequestModel) -> None:
         pass
 
 
-class MeasurementRequestBoundary(metaclass=ABCMeta):
+class MeasurementRequestBoundary(ABC):
     @abstractmethod
     async def request(self, request_model: MeasurementRequestModel) -> None:
         pass

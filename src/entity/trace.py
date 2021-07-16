@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from typing import Callable, Iterable, NamedTuple
 
 from src.entity.enumerable import Enumerable, Indexable, Mappable
@@ -303,7 +303,7 @@ class OneStepProduct(NamedTuple):
         return SplitableTrace._make(CorrectableTrace._make(self.trace).end_corrected()).splited_with_color_turn()
 
 
-class ITraceProducable(metaclass=ABCMeta):
+class ITraceProducable(ABC):
     @abstractmethod
     async def n_step_produced(
         self, product: OneStepProduct, status: IStatus, movement_white: IMovement, movement_black: IMovement
