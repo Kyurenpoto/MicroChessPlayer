@@ -31,7 +31,7 @@ class GameRequestIntent(GameRequestIntentData, GameRequestBoundary):
 
 
 class GameResponseIntentData(NamedTuple):
-    response_model: list[GameResponsableModel] = []
+    response_model: list[GameResponsableModel]
 
 
 class GameResponseIntent(GameResponseIntentData, GameResponseBoundary):
@@ -79,7 +79,7 @@ class GameIntent(NamedTuple):
 
     @classmethod
     def from_usecase_factory(cls, factory: GameFactory) -> GameIntent:
-        response_intent: GameResponseIntent = GameResponseIntent()
+        response_intent: GameResponseIntent = GameResponseIntent([])
 
         return GameIntent(GameRequestIntent(factory.createdGame(response_intent)), response_intent)
 

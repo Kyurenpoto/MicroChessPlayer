@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, NamedTuple, Union, cast
+from typing import Any, Callable, NamedTuple, Union
 
 from src.adapter.requestboundary import TrajectoryRequestBoundary
 from src.adapter.responseboundary import TrajectoryResponseBoundary
@@ -35,7 +35,7 @@ class TrajectoryRequestIntent(TrajectoryRequestIntentData, TrajectoryRequestBoun
 
 
 class TrajectoryResponseIntentData(NamedTuple):
-    response_model: list[TrajectoryResponsableModel] = []
+    response_model: list[TrajectoryResponsableModel]
 
 
 class TrajectoryResponseIntent(TrajectoryResponseIntentData, TrajectoryResponseBoundary):
@@ -83,7 +83,7 @@ class TrajectoryIntent(NamedTuple):
 
     @classmethod
     def from_usecase_factory(cls, factory: TrajectoryFactory) -> TrajectoryIntent:
-        response_intent: TrajectoryResponseIntent = TrajectoryResponseIntent()
+        response_intent: TrajectoryResponseIntent = TrajectoryResponseIntent([])
 
         return TrajectoryIntent(TrajectoryRequestIntent(factory.createdTrajectory(response_intent)), response_intent)
 

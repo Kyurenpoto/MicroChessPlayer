@@ -35,12 +35,10 @@ class MeasurementRequestIntent(MeasurementRequestIntentData, MeasurementRequestB
 
 
 class MeasurementResponseIntentData(NamedTuple):
-    response_model: list[MeasurementResponsableModel] = []
+    response_model: list[MeasurementResponsableModel]
 
 
 class MeasurementResponseIntent(MeasurementResponseIntentData, MeasurementResponseBoundary):
-    response_model: list[MeasurementResponsableModel] = []
-
     async def response(self, response_model: MeasurementResponsableModel) -> None:
         self.response_model.append(response_model)
 
@@ -85,7 +83,7 @@ class MeasurementIntent(NamedTuple):
 
     @classmethod
     def from_usecase_factory(cls, factory: MeasurementFactory) -> MeasurementIntent:
-        response_intent: MeasurementResponseIntent = MeasurementResponseIntent()
+        response_intent: MeasurementResponseIntent = MeasurementResponseIntent([])
 
         return MeasurementIntent(MeasurementRequestIntent(factory.createdMeasurement(response_intent)), response_intent)
 
