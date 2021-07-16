@@ -45,7 +45,7 @@ class GameResponseIntent(GameResponseIntentData, GameResponseBoundary):
 ResponseType = Union[PlayerGameResponse, PlayerRequestErrorResponse, PlayerHTTPStatusErrorResponse]
 
 
-class GameResonsableConverter(NamedTuple):
+class GameResponsableToDTO(NamedTuple):
     converters: dict[
         str,
         Union[
@@ -56,8 +56,8 @@ class GameResonsableConverter(NamedTuple):
     ]
 
     @classmethod
-    def from_request_dto(cls, request_dto: PlayerGameRequest) -> GameResonsableConverter:
-        return GameResonsableConverter(
+    def from_request_dto(cls, request_dto: PlayerGameRequest) -> GameResponsableToDTO:
+        return GameResponsableToDTO(
             {
                 "GameResponseModel": (lambda model: GameResponseToDTO.from_model(model)),
                 "RequestErrorResponseModel": (
@@ -87,7 +87,7 @@ class GameIntent(NamedTuple):
         await self.request_intent.request(GameRequestToModel.from_dto(request).convert())
 
     async def pull(self, request: PlayerGameRequest) -> ResponseType:
-        return GameResonsableConverter.from_request_dto(request).convert(await self.response_intent.pull())
+        return GameResponsableToDTO.from_request_dto(request).convert(await self.response_intent.pull())
 
     async def executed(self, request: PlayerGameRequest) -> ResponseType:
         await self.push(request)

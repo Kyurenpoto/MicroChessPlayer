@@ -49,7 +49,7 @@ class TrajectoryResponseIntent(TrajectoryResponseIntentData, TrajectoryResponseB
 ResponseType = Union[PlayerTrajectoryResponse, PlayerRequestErrorResponse, PlayerHTTPStatusErrorResponse]
 
 
-class TrajectoryResonsableConverter(NamedTuple):
+class TrajectoryResponsableToDTO(NamedTuple):
     converters: dict[
         str,
         Union[
@@ -60,8 +60,8 @@ class TrajectoryResonsableConverter(NamedTuple):
     ]
 
     @classmethod
-    def from_request_dto(cls, request_dto: PlayerTrajectoryRequest) -> TrajectoryResonsableConverter:
-        return TrajectoryResonsableConverter(
+    def from_request_dto(cls, request_dto: PlayerTrajectoryRequest) -> TrajectoryResponsableToDTO:
+        return TrajectoryResponsableToDTO(
             {
                 "TrajectoryResponseModel": (lambda model: TrajectoryResponseToDTO.from_model(model)),
                 "RequestErrorResponseModel": (
@@ -91,7 +91,7 @@ class TrajectoryIntent(NamedTuple):
         await self.request_intent.request(TrajectoryRequestToModel.from_dto(request).convert())
 
     async def pull(self, request: PlayerTrajectoryRequest) -> ResponseType:
-        return TrajectoryResonsableConverter.from_request_dto(request).convert(await self.response_intent.pull())
+        return TrajectoryResponsableToDTO.from_request_dto(request).convert(await self.response_intent.pull())
 
     async def executed(self, request: PlayerTrajectoryRequest) -> ResponseType:
         await self.push(request)

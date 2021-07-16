@@ -49,7 +49,7 @@ class MeasurementResponseIntent(MeasurementResponseIntentData, MeasurementRespon
 ResponseType = Union[PlayerMeasurementResponse, PlayerRequestErrorResponse, PlayerHTTPStatusErrorResponse]
 
 
-class MeasurementResonsableConverter(NamedTuple):
+class MeasurementResponsableToDTO(NamedTuple):
     converters: dict[
         str,
         Union[
@@ -60,8 +60,8 @@ class MeasurementResonsableConverter(NamedTuple):
     ]
 
     @classmethod
-    def from_request_dto(cls, request_dto: PlayerMeasurementRequest) -> MeasurementResonsableConverter:
-        return MeasurementResonsableConverter(
+    def from_request_dto(cls, request_dto: PlayerMeasurementRequest) -> MeasurementResponsableToDTO:
+        return MeasurementResponsableToDTO(
             {
                 "MeasurementResponseModel": (lambda model: MeasurementResponseToDTO.from_model(model)),
                 "RequestErrorResponseModel": (
@@ -91,7 +91,7 @@ class MeasurementIntent(NamedTuple):
         await self.request_intent.request(MeasurementRequestToModel.from_dto(request).convert())
 
     async def pull(self, request: PlayerMeasurementRequest) -> ResponseType:
-        return MeasurementResonsableConverter.from_request_dto(request).convert(await self.response_intent.pull())
+        return MeasurementResponsableToDTO.from_request_dto(request).convert(await self.response_intent.pull())
 
     async def executed(self, request: PlayerMeasurementRequest) -> ResponseType:
         await self.push(request)
