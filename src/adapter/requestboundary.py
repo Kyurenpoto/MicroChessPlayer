@@ -5,7 +5,14 @@
 
 from abc import ABC, abstractmethod
 
-from src.model.requestmodel import GameRequestModel, MeasurementRequestModel, TrajectoryRequestModel
+from src.model.requestmodel import (
+    FENStatusRequestModel,
+    GameRequestModel,
+    MeasurementRequestModel,
+    NextFENRequestModel,
+    NextSANRequestModel,
+    TrajectoryRequestModel,
+)
 
 
 class TrajectoryRequestBoundary(ABC):
@@ -23,4 +30,22 @@ class GameRequestBoundary(ABC):
 class MeasurementRequestBoundary(ABC):
     @abstractmethod
     async def request(self, request_model: MeasurementRequestModel) -> None:
+        pass
+
+
+class NextFENRequestBoundary(ABC):
+    @abstractmethod
+    def request(self, request_model: NextFENRequestModel) -> None:
+        pass
+
+
+class NextSANRequestBoundary(ABC):
+    @abstractmethod
+    def request(self, request_model: NextSANRequestModel) -> None:
+        pass
+
+
+class FENStatusRequestBoundary(ABC):
+    @abstractmethod
+    def request(self, request_model: FENStatusRequestModel) -> None:
         pass
