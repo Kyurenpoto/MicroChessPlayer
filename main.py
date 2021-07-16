@@ -7,7 +7,6 @@ import argparse
 import uvicorn
 from fastapi import FastAPI
 
-from src.application import createdresponse
 from src.config import container
 from src.converter import requestconverter, responseconverter
 from src.presentation.api.playerapi import router
@@ -27,7 +26,7 @@ def wire(url_env: str) -> None:
             "method": "",
         }
     )
-    app.state.container.wire(modules=[createdresponse, requestconverter, responseconverter])
+    app.state.container.wire(modules=[requestconverter, responseconverter])
 
 
 def unwire() -> None:

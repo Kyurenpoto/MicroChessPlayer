@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT
 
 from fastapi import APIRouter, status
-from src.application.createdresponse import CreatedGameResponse, CreatedMeasurementResponse, CreatedTrajectoryResponse
+from src.application.player import Player
 from src.framework.dto.playerdto import (
     PlayerErrorResponse,
     PlayerGameRequest,
@@ -13,7 +13,6 @@ from src.framework.dto.playerdto import (
     PlayerTrajectoryRequest,
     PlayerTrajectoryResponse,
 )
-from src.presentation.response import ExceptionHandledResponse
 from submodules.fastapi_haljson.src.halresponse import HALJSONResponse
 
 router: APIRouter = APIRouter(prefix="/player")
@@ -38,6 +37,9 @@ responses: dict[int, dict] = {
 }
 
 
+player = Player.from_type_map()
+
+
 @router.post(
     "/trajectory",
     name="trajectory",
@@ -53,7 +55,7 @@ responses: dict[int, dict] = {
     },
 )
 async def trajectory(request: PlayerTrajectoryRequest) -> HALJSONResponse:
-    return await ExceptionHandledResponse(CreatedTrajectoryResponse(request)).handled()
+    return await player.trajectory(request)
 
 
 @router.post(
@@ -71,7 +73,7 @@ async def trajectory(request: PlayerTrajectoryRequest) -> HALJSONResponse:
     },
 )
 async def game(request: PlayerGameRequest) -> HALJSONResponse:
-    return await ExceptionHandledResponse(CreatedGameResponse(request)).handled()
+    return await player.game(request)
 
 
 @router.post(
@@ -89,4 +91,4 @@ async def game(request: PlayerGameRequest) -> HALJSONResponse:
     },
 )
 async def measurement(request: PlayerMeasurementRequest) -> HALJSONResponse:
-    return await ExceptionHandledResponse(CreatedMeasurementResponse(request)).handled()
+    return await player.measurement(request)

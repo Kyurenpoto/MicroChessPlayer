@@ -7,12 +7,13 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import NamedTuple
 
+from httpx import HTTPStatusError, RequestError
 from src.adapter.responseboundary import TrajectoryResponseBoundary
 from src.entity.movement import FEN, SAN, Movement
 from src.entity.status import Status
 from src.entity.trace import ColoredTrace, FiniteTraceProducable, ProducableTrace, Trace
 from src.model.requestmodel import TrajectoryRequestModel
-from src.model.responsemodel import TrajectoryResponseModel
+from src.model.responsemodel import HTTPStatusErrorResponseModel, RequestErrorResponseModel, TrajectoryResponseModel
 
 
 class ITrajectory(metaclass=ABCMeta):
@@ -27,18 +28,34 @@ class TrajectoryData(NamedTuple):
 
 class Trajectory(TrajectoryData, ITrajectory):
     async def executed(self, request_model: TrajectoryRequestModel) -> None:
-        await self.response_boundary.response(
-            TrajectoryResponseModel._make(
-                (
-                    await ProducableTrace(
-                        Status(request_model.env),
-                        Movement(request_model.env, request_model.ai_white),
-                        Movement(request_model.env, request_model.ai_black),
-                        FiniteTraceProducable(request_model.step),
-                    ).produced_with_spliting(request_model.fens)
-                ).concatenated()
+        try:
+            await self.response_boundary.response(
+                TrajectoryResponseModel._make(
+                    (
+                        await ProducableTrace(
+                            Status(request_model.env),
+                            Movement(request_model.env, request_model.ai_white),
+                            Movement(request_model.env, request_model.ai_black),
+                            FiniteTraceProducable(request_model.step),
+                        ).produced_with_spliting(request_model.fens)
+                    ).concatenated()
+                )
             )
-        )
+        except RequestError as ex:
+            await self.response_boundary.response(
+                RequestErrorResponseModel(
+                    f"An error occurred while requesting {ex.request.url!r}: {ex.args[0]!r}",
+                    "request.RequestError",
+                )
+            )
+        except HTTPStatusError as ex:
+            await self.response_boundary.response(
+                HTTPStatusErrorResponseModel(
+                    f"Error response {ex.response.status_code} "
+                    + f"while requesting {ex.request.url!r}: {ex.response.json()!r}",
+                    "request.HTTPStatusError",
+                )
+            )
 
 
 class FakeTrajectory(TrajectoryData, ITrajectory):
