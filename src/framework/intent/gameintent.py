@@ -83,13 +83,7 @@ class GameIntent(NamedTuple):
 
         return GameIntent(GameRequestIntent(factory.createdGame(response_intent)), response_intent)
 
-    async def push(self, request: PlayerGameRequest) -> None:
+    async def executed(self, request: PlayerGameRequest) -> ResponseType:
         await self.request_intent.request(GameRequestToModel.from_dto(request).convert())
 
-    async def pull(self, request: PlayerGameRequest) -> ResponseType:
         return GameResponsableToDTO.from_request_dto(request).convert(await self.response_intent.pull())
-
-    async def executed(self, request: PlayerGameRequest) -> ResponseType:
-        await self.push(request)
-
-        return await self.pull(request)

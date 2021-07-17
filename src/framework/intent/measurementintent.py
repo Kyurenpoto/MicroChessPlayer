@@ -87,13 +87,7 @@ class MeasurementIntent(NamedTuple):
 
         return MeasurementIntent(MeasurementRequestIntent(factory.createdMeasurement(response_intent)), response_intent)
 
-    async def push(self, request: PlayerMeasurementRequest) -> None:
+    async def executed(self, request: PlayerMeasurementRequest) -> ResponseType:
         await self.request_intent.request(MeasurementRequestToModel.from_dto(request).convert())
 
-    async def pull(self, request: PlayerMeasurementRequest) -> ResponseType:
         return MeasurementResponsableToDTO.from_request_dto(request).convert(await self.response_intent.pull())
-
-    async def executed(self, request: PlayerMeasurementRequest) -> ResponseType:
-        await self.push(request)
-
-        return await self.pull(request)

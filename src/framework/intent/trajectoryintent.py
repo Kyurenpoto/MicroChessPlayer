@@ -87,13 +87,7 @@ class TrajectoryIntent(NamedTuple):
 
         return TrajectoryIntent(TrajectoryRequestIntent(factory.createdTrajectory(response_intent)), response_intent)
 
-    async def push(self, request: PlayerTrajectoryRequest) -> None:
+    async def executed(self, request: PlayerTrajectoryRequest) -> ResponseType:
         await self.request_intent.request(TrajectoryRequestToModel.from_dto(request).convert())
 
-    async def pull(self, request: PlayerTrajectoryRequest) -> ResponseType:
         return TrajectoryResponsableToDTO.from_request_dto(request).convert(await self.response_intent.pull())
-
-    async def executed(self, request: PlayerTrajectoryRequest) -> ResponseType:
-        await self.push(request)
-
-        return await self.pull(request)
