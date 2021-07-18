@@ -19,14 +19,51 @@ from src.framework.dto.playerdto import (
     PlayerTrajectoryRequest,
     PlayerTrajectoryResponse,
 )
-from src.framework.intent.gameintent import GameIntent
-from src.framework.intent.measurementintent import MeasurementIntent
-from src.framework.intent.trajectoryintent import TrajectoryIntent
-from src.usecase.game import NormalGameFactory
-from src.usecase.measurement import NormalMeasurementFactory
-from src.usecase.trajectory import NormalTrajectoryFactory
+from src.framework.intent.gameintent import GameIntent, GameRequestIntent, GameResponseIntent
+from src.framework.intent.measurementintent import (
+    MeasurementIntent,
+    MeasurementRequestIntent,
+    MeasurementResponseIntent,
+)
+from src.framework.intent.trajectoryintent import TrajectoryIntent, TrajectoryRequestIntent, TrajectoryResponseIntent
+from src.usecase.game import GameFactory, NormalGameFactory
+from src.usecase.measurement import MeasurementFactory, NormalMeasurementFactory
+from src.usecase.trajectory import NormalTrajectoryFactory, TrajectoryFactory
 from submodules.fastapi_haljson.src.halconverter import ResponseToJSONBody
 from submodules.fastapi_haljson.src.halresponse import HALJSONResponse
+
+
+class TrajectoryPlayer(NamedTuple):
+    intent: TrajectoryIntent
+
+    @classmethod
+    def from_usecase_factory(cls, usecase_factory: TrajectoryFactory) -> TrajectoryPlayer:
+        response_intent: TrajectoryResponseIntent = TrajectoryResponseIntent([])
+        usecase = usecase_factory.createdTrajectory(response_intent)
+
+        return TrajectoryPlayer(TrajectoryIntent(TrajectoryRequestIntent(usecase), response_intent))
+
+
+class GamePlayer(NamedTuple):
+    intent: GameIntent
+
+    @classmethod
+    def from_usecase_factory(cls, usecase_factory: GameFactory) -> GamePlayer:
+        response_intent: GameResponseIntent = GameResponseIntent([])
+        usecase = usecase_factory.createdGame(response_intent)
+
+        return GamePlayer(GameIntent(GameRequestIntent(usecase), response_intent))
+
+
+class MeasurementPlayer(NamedTuple):
+    intent: MeasurementIntent
+
+    @classmethod
+    def from_usecase_factory(cls, usecase_factory: MeasurementFactory) -> MeasurementPlayer:
+        response_intent: MeasurementResponseIntent = MeasurementResponseIntent([])
+        usecase = usecase_factory.createdMeasurement(response_intent)
+
+        return MeasurementPlayer(MeasurementIntent(MeasurementRequestIntent(usecase), response_intent))
 
 
 class Player(NamedTuple):
@@ -55,19 +92,19 @@ class Player(NamedTuple):
         container.api_info.override(providers.Factory(PlayerAPIInfo, name="trajectory", method="post"))
 
         return self.response_converter.convert(
-            await TrajectoryIntent.from_usecase_factory(NormalTrajectoryFactory()).executed(request)
+            await TrajectoryPlayer.from_usecase_factory(NormalTrajectoryFactory()).intent.executed(request)
         )
 
     async def game(self, request: PlayerGameRequest) -> HALJSONResponse:
         container.api_info.override(providers.Factory(PlayerAPIInfo, name="game", method="post"))
 
         return self.response_converter.convert(
-            await GameIntent.from_usecase_factory(NormalGameFactory()).executed(request)
+            await GamePlayer.from_usecase_factory(NormalGameFactory()).intent.executed(request)
         )
 
     async def measurement(self, request: PlayerMeasurementRequest) -> HALJSONResponse:
         container.api_info.override(providers.Factory(PlayerAPIInfo, name="measurement", method="post"))
 
         return self.response_converter.convert(
-            await MeasurementIntent.from_usecase_factory(NormalMeasurementFactory()).executed(request)
+            await MeasurementPlayer.from_usecase_factory(NormalMeasurementFactory()).intent.executed(request)
         )

@@ -18,7 +18,7 @@ from src.framework.dto.playerdto import (
 )
 from src.model.requestmodel import GameRequestModel
 from src.model.responsemodel import GameResponsableModel
-from src.usecase.game import GameFactory, IGame
+from src.usecase.game import IGame
 
 
 class GameRequestIntentData(NamedTuple):
@@ -76,12 +76,6 @@ class GameResponsableToDTO(NamedTuple):
 class GameIntent(NamedTuple):
     request_intent: GameRequestIntent
     response_intent: GameResponseIntent
-
-    @classmethod
-    def from_usecase_factory(cls, factory: GameFactory) -> GameIntent:
-        response_intent: GameResponseIntent = GameResponseIntent([])
-
-        return GameIntent(GameRequestIntent(factory.createdGame(response_intent)), response_intent)
 
     async def executed(self, request: PlayerGameRequest) -> ResponseType:
         await self.request_intent.request(GameRequestToModel.from_dto(request).convert())

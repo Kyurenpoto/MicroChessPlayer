@@ -22,7 +22,7 @@ from src.framework.dto.playerdto import (
 )
 from src.model.requestmodel import MeasurementRequestModel
 from src.model.responsemodel import MeasurementResponsableModel
-from src.usecase.measurement import IMeasurement, MeasurementFactory
+from src.usecase.measurement import IMeasurement
 
 
 class MeasurementRequestIntentData(NamedTuple):
@@ -80,12 +80,6 @@ class MeasurementResponsableToDTO(NamedTuple):
 class MeasurementIntent(NamedTuple):
     request_intent: MeasurementRequestIntent
     response_intent: MeasurementResponseIntent
-
-    @classmethod
-    def from_usecase_factory(cls, factory: MeasurementFactory) -> MeasurementIntent:
-        response_intent: MeasurementResponseIntent = MeasurementResponseIntent([])
-
-        return MeasurementIntent(MeasurementRequestIntent(factory.createdMeasurement(response_intent)), response_intent)
 
     async def executed(self, request: PlayerMeasurementRequest) -> ResponseType:
         await self.request_intent.request(MeasurementRequestToModel.from_dto(request).convert())

@@ -22,7 +22,7 @@ from src.framework.dto.playerdto import (
 )
 from src.model.requestmodel import TrajectoryRequestModel
 from src.model.responsemodel import TrajectoryResponsableModel
-from src.usecase.trajectory import ITrajectory, TrajectoryFactory
+from src.usecase.trajectory import ITrajectory
 
 
 class TrajectoryRequestIntentData(NamedTuple):
@@ -80,12 +80,6 @@ class TrajectoryResponsableToDTO(NamedTuple):
 class TrajectoryIntent(NamedTuple):
     request_intent: TrajectoryRequestIntent
     response_intent: TrajectoryResponseIntent
-
-    @classmethod
-    def from_usecase_factory(cls, factory: TrajectoryFactory) -> TrajectoryIntent:
-        response_intent: TrajectoryResponseIntent = TrajectoryResponseIntent([])
-
-        return TrajectoryIntent(TrajectoryRequestIntent(factory.createdTrajectory(response_intent)), response_intent)
 
     async def executed(self, request: PlayerTrajectoryRequest) -> ResponseType:
         await self.request_intent.request(TrajectoryRequestToModel.from_dto(request).convert())
