@@ -16,8 +16,8 @@ from src.model.requestmodel import (
     GameRequestModel,
     MeasurementRequestModel,
     TrajectoryRequestModel,
+    URLString,
 )
-from src.usecase.typemodel import URLString
 
 
 class TrajectoryRequestToModel(PlayerTrajectoryRequest):

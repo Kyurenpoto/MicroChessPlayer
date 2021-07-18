@@ -4,7 +4,9 @@
 
 from typing import NamedTuple
 
-from src.usecase.typemodel import URLString
+
+class URLString(str):
+    pass
 
 
 class TrajectoryRequestModel(NamedTuple):
