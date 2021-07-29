@@ -6,14 +6,14 @@ from __future__ import annotations
 
 from typing import Any, Callable, NamedTuple, Union
 
-from src.adapter.requestboundary import TrajectoryRequestBoundary
-from src.adapter.responseboundary import TrajectoryResponseBoundary
 from src.converter.requestconverter import TrajectoryRequestToModel
 from src.converter.responseconverter import (
     HTTPStatusErrorResponseToDTO,
     RequestErrorResponseToDTO,
     TrajectoryResponseToDTO,
 )
+from src.core.event import EventAGen, PopEvent
+from src.core.intent import Intent, IntentData
 from src.framework.dto.playerdto import (
     PlayerHTTPStatusErrorResponse,
     PlayerRequestErrorResponse,
@@ -22,29 +22,6 @@ from src.framework.dto.playerdto import (
 )
 from src.model.requestmodel import TrajectoryRequestModel
 from src.model.responsemodel import TrajectoryResponsableModel
-from src.usecase.trajectory import ITrajectory
-
-
-class TrajectoryRequestIntentData(NamedTuple):
-    usecase: ITrajectory
-
-
-class TrajectoryRequestIntent(TrajectoryRequestIntentData, TrajectoryRequestBoundary):
-    async def request(self, request_model: TrajectoryRequestModel) -> None:
-        await self.usecase.executed(request_model)
-
-
-class TrajectoryResponseIntentData(NamedTuple):
-    response_model: list[TrajectoryResponsableModel]
-
-
-class TrajectoryResponseIntent(TrajectoryResponseIntentData, TrajectoryResponseBoundary):
-    async def response(self, response_model: TrajectoryResponsableModel) -> None:
-        self.response_model.append(response_model)
-
-    async def pull(self) -> TrajectoryResponsableModel:
-        return self.response_model[0]
-
 
 ResponseType = Union[PlayerTrajectoryResponse, PlayerRequestErrorResponse, PlayerHTTPStatusErrorResponse]
 
@@ -77,11 +54,13 @@ class TrajectoryResponsableToDTO(NamedTuple):
         return self.converters[type(model).__name__](model).convert()
 
 
-class TrajectoryIntent(NamedTuple):
-    request_intent: TrajectoryRequestIntent
-    response_intent: TrajectoryResponseIntent
-
-    async def executed(self, request: PlayerTrajectoryRequest) -> ResponseType:
-        await self.request_intent.request(TrajectoryRequestToModel.from_dto(request).convert())
-
-        return TrajectoryResponsableToDTO.from_request_dto(request).convert(await self.response_intent.pull())
+class TrajectoryIntent(
+    IntentData,
+    Intent[PlayerTrajectoryRequest, ResponseType, TrajectoryRequestModel, TrajectoryResponsableModel],
+):
+    async def executed(self, request: PlayerTrajectoryRequest) -> EventAGen:
+        yield PopEvent(
+            TrajectoryResponsableToDTO.from_request_dto(request).convert(
+                (yield await self.usecase.request(TrajectoryRequestToModel.from_dto(request).convert()))
+            )
+        )

@@ -6,14 +6,14 @@ from __future__ import annotations
 
 from typing import Any, Callable, NamedTuple, Union
 
-from src.adapter.requestboundary import MeasurementRequestBoundary
-from src.adapter.responseboundary import MeasurementResponseBoundary
 from src.converter.requestconverter import MeasurementRequestToModel
 from src.converter.responseconverter import (
     HTTPStatusErrorResponseToDTO,
     MeasurementResponseToDTO,
     RequestErrorResponseToDTO,
 )
+from src.core.event import EventAGen, PopEvent
+from src.core.intent import Intent, IntentData
 from src.framework.dto.playerdto import (
     PlayerHTTPStatusErrorResponse,
     PlayerMeasurementRequest,
@@ -22,29 +22,6 @@ from src.framework.dto.playerdto import (
 )
 from src.model.requestmodel import MeasurementRequestModel
 from src.model.responsemodel import MeasurementResponsableModel
-from src.usecase.measurement import IMeasurement
-
-
-class MeasurementRequestIntentData(NamedTuple):
-    usecase: IMeasurement
-
-
-class MeasurementRequestIntent(MeasurementRequestIntentData, MeasurementRequestBoundary):
-    async def request(self, request_model: MeasurementRequestModel) -> None:
-        await self.usecase.executed(request_model)
-
-
-class MeasurementResponseIntentData(NamedTuple):
-    response_model: list[MeasurementResponsableModel]
-
-
-class MeasurementResponseIntent(MeasurementResponseIntentData, MeasurementResponseBoundary):
-    async def response(self, response_model: MeasurementResponsableModel) -> None:
-        self.response_model.append(response_model)
-
-    async def pull(self) -> MeasurementResponsableModel:
-        return self.response_model[0]
-
 
 ResponseType = Union[PlayerMeasurementResponse, PlayerRequestErrorResponse, PlayerHTTPStatusErrorResponse]
 
@@ -77,11 +54,12 @@ class MeasurementResponsableToDTO(NamedTuple):
         return self.converters[type(model).__name__](model).convert()
 
 
-class MeasurementIntent(NamedTuple):
-    request_intent: MeasurementRequestIntent
-    response_intent: MeasurementResponseIntent
-
-    async def executed(self, request: PlayerMeasurementRequest) -> ResponseType:
-        await self.request_intent.request(MeasurementRequestToModel.from_dto(request).convert())
-
-        return MeasurementResponsableToDTO.from_request_dto(request).convert(await self.response_intent.pull())
+class MeasurementIntent(
+    IntentData, Intent[PlayerMeasurementRequest, ResponseType, MeasurementRequestModel, MeasurementResponsableModel]
+):
+    async def executed(self, request: PlayerMeasurementRequest) -> EventAGen:
+        yield PopEvent(
+            MeasurementResponsableToDTO.from_request_dto(request).convert(
+                (yield await self.usecase.request(MeasurementRequestToModel.from_dto(request).convert()))
+            )
+        )

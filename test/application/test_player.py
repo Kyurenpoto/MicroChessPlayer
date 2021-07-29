@@ -16,9 +16,9 @@ from src.framework.dto.playerdto import (
     PlayerTrajectoryRequest,
 )
 from src.model.responsemodel import MeasurementInfo
-from src.usecase.game import FakeGameFactory
-from src.usecase.measurement import FakeMeasurementFactory
-from src.usecase.trajectory import FakeTrajectoryFactory
+from src.usecase.game import FakeGame
+from src.usecase.measurement import FakeMeasurement
+from src.usecase.trajectory import FakeTrajectory
 
 
 @pytest.mark.asyncio
@@ -26,7 +26,7 @@ async def test_trajectory_player(container: Container) -> None:
     container.api_info.override(providers.Factory(PlayerAPIInfo, name="trajectory", method="post"))
 
     assert (
-        await TrajectoryPlayer.from_usecase_factory(FakeTrajectoryFactory()).intent.executed(
+        await TrajectoryPlayer.from_usecase(FakeTrajectory({})).intent.dispatch(
             PlayerTrajectoryRequest(
                 fens=[FEN.starting(), FEN.first()],
                 white=PlayerAIInfo(url="http://test"),
@@ -45,7 +45,7 @@ async def test_game_intent(container: Container) -> None:
     container.api_info.override(providers.Factory(PlayerAPIInfo, name="game", method="post"))
 
     assert (
-        await GamePlayer.from_usecase_factory(FakeGameFactory()).intent.executed(
+        await GamePlayer.from_usecase(FakeGame({})).intent.dispatch(
             PlayerGameRequest(white=PlayerAIInfo(url="http://test"), black=PlayerAIInfo(url="http://test"))
         )
         == GameResponseToDTO([FEN.starting()], [], "1-0").convert()
@@ -57,7 +57,7 @@ async def test_measurement_intent(container: Container) -> None:
     container.api_info.override(providers.Factory(PlayerAPIInfo, name="measurement", method="post"))
 
     assert (
-        await MeasurementPlayer.from_usecase_factory(FakeMeasurementFactory()).intent.executed(
+        await MeasurementPlayer.from_usecase(FakeMeasurement({})).intent.dispatch(
             PlayerMeasurementRequest(
                 white=PlayerAIInfo(url="http://test"), black=PlayerAIInfo(url="http://test"), playtime=3
             )

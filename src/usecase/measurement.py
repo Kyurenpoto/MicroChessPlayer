@@ -4,11 +4,9 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from typing import NamedTuple
-
 from httpx import HTTPStatusError, RequestError
-from src.adapter.responseboundary import MeasurementResponseBoundary
+from src.core.event import EventAGen
+from src.core.usecase import Usecase, UsecaseData
 from src.entity.enumerable import Mappable
 from src.entity.movement import FEN, Movement
 from src.entity.score import Score
@@ -18,6 +16,7 @@ from src.model.requestmodel import MeasurementRequestModel
 from src.model.responsemodel import (
     HTTPStatusErrorResponseModel,
     MeasurementInfo,
+    MeasurementResponsableModel,
     MeasurementResponseModel,
     RequestErrorResponseModel,
 )
@@ -56,64 +55,39 @@ class Statistics(dict[Score, int]):
         return MeasurementResponseModel(self.white(), self.black())
 
 
-class IMeasurement(ABC):
-    @abstractmethod
-    async def executed(self, request_model: MeasurementRequestModel) -> None:
-        pass
+class MeasurementUsecase(UsecaseData, Usecase[MeasurementRequestModel, MeasurementResponseModel]):
+    pass
 
 
-class MeasurementData(NamedTuple):
-    response_boundary: MeasurementResponseBoundary
+class Measurement(MeasurementUsecase):
+    async def executed(self, request: MeasurementRequestModel) -> EventAGen:
+        yield await self.framework().response(await self.request_to_responsable(request))
 
-
-class Measurement(MeasurementData, IMeasurement):
-    async def executed(self, request_model: MeasurementRequestModel) -> None:
+    async def request_to_responsable(self, request: MeasurementRequestModel) -> MeasurementResponsableModel:
         try:
-            await self.response_boundary.response(
-                Statistics.from_traces(
-                    await ProducableTrace(
-                        Status(request_model.env),
-                        Movement(request_model.env, request_model.ai_white),
-                        Movement(request_model.env, request_model.ai_black),
-                        InfiniteTraceProducable(),
-                    ).produced([FEN.starting()] * request_model.playtime)
-                ).to_response()
-            )
+            return Statistics.from_traces(
+                await ProducableTrace(
+                    Status(request.env),
+                    Movement(request.env, request.ai_white),
+                    Movement(request.env, request.ai_black),
+                    InfiniteTraceProducable(),
+                ).produced([FEN.starting()] * request.playtime)
+            ).to_response()
         except RequestError as ex:
-            await self.response_boundary.response(
-                RequestErrorResponseModel(
-                    f"An error occurred while requesting {ex.request.url!r}: {ex.args[0]!r}",
-                    "request.RequestError",
-                )
+            return RequestErrorResponseModel(
+                f"An error occurred while requesting {ex.request.url!r}: {ex.args[0]!r}",
+                "request.RequestError",
             )
         except HTTPStatusError as ex:
-            await self.response_boundary.response(
-                HTTPStatusErrorResponseModel(
-                    f"Error response {ex.response.status_code} "
-                    + f"while requesting {ex.request.url!r}: {ex.response.json()!r}",
-                    "request.HTTPStatusError",
-                )
+            return HTTPStatusErrorResponseModel(
+                f"Error response {ex.response.status_code} "
+                + f"while requesting {ex.request.url!r}: {ex.response.json()!r}",
+                "request.HTTPStatusError",
             )
 
 
-class FakeMeasurement(MeasurementData, IMeasurement):
-    async def executed(self, request_model: MeasurementRequestModel) -> None:
-        await self.response_boundary.response(
+class FakeMeasurement(MeasurementUsecase):
+    async def executed(self, request: MeasurementRequestModel) -> EventAGen:
+        yield await self.framework().response(
             MeasurementResponseModel(MeasurementInfo(1.5, 1, 1, 1), MeasurementInfo(1.5, 1, 1, 1))
         )
-
-
-class MeasurementFactory(ABC):
-    @abstractmethod
-    def createdMeasurement(self, response_boundary: MeasurementResponseBoundary) -> IMeasurement:
-        pass
-
-
-class NormalMeasurementFactory(MeasurementFactory):
-    def createdMeasurement(self, response_boundary: MeasurementResponseBoundary) -> IMeasurement:
-        return Measurement(response_boundary)
-
-
-class FakeMeasurementFactory(MeasurementFactory):
-    def createdMeasurement(self, response_boundary: MeasurementResponseBoundary) -> IMeasurement:
-        return FakeMeasurement(response_boundary)

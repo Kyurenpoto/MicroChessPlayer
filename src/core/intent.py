@@ -3,10 +3,10 @@
 # SPDX-License-Identifier: MIT
 
 from abc import abstractmethod
-from typing import Any, TypeVar, cast
+from typing import Any, NamedTuple, TypeVar, cast
 
 from src.core.adapter import ToUsecaseAdapter
-from src.core.boundary import FrameworkResponseBoundary
+from src.core.boundary import FrameworkRequestBoundary, FrameworkResponseBoundary
 from src.core.event import Event, EventAGen, EventOperator, PopEvent
 
 IntentReq = TypeVar("IntentReq")
@@ -33,3 +33,7 @@ class Intent(ToUsecaseAdapter[IntentReq, IntentRes], FrameworkResponseBoundary[U
     @abstractmethod
     async def executed(self, req: Any) -> EventAGen:
         yield PopEvent(None)
+
+
+class IntentData(NamedTuple):
+    usecase: FrameworkRequestBoundary

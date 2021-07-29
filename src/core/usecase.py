@@ -3,9 +3,9 @@
 # SPDX-License-Identifier: MIT
 
 from abc import abstractmethod
-from typing import TypeVar
+from typing import NamedTuple, TypeVar, Union, cast
 
-from src.core.boundary import FrameworkRequestBoundary
+from src.core.boundary import DataStoreRequestBoundary, FrameworkRequestBoundary, FrameworkResponseBoundary
 from src.core.event import EventAGen, PopEvent, PushEvent
 
 UsecaseReq = TypeVar("UsecaseReq")
@@ -19,3 +19,13 @@ class Usecase(FrameworkRequestBoundary[UsecaseReq, UsecaseRes]):
     @abstractmethod
     async def executed(self, req: UsecaseReq) -> EventAGen:
         yield PopEvent(None)
+
+
+class UsecaseData(NamedTuple):
+    boundaries: dict[str, Union[FrameworkResponseBoundary, DataStoreRequestBoundary]]
+
+    def datastore(self) -> DataStoreRequestBoundary:
+        return cast(DataStoreRequestBoundary, self.boundaries["datastore"])
+
+    def framework(self) -> FrameworkResponseBoundary:
+        return cast(FrameworkResponseBoundary, self.boundaries["framework"])
