@@ -16,8 +16,8 @@ UsecaseRes = TypeVar("UsecaseRes")
 
 
 class Intent(ToUsecaseAdapter[IntentReq, IntentRes], FrameworkResponseBoundary[UsecaseReq, UsecaseRes]):
-    async def dispatch(self, req: IntentReq) -> IntentRes:
-        callstack: list[EventAGen] = list[EventAGen]([self.executed(req)])
+    async def dispatch(self, request: IntentReq) -> IntentRes:
+        callstack: list[EventAGen] = list[EventAGen]([self.executed(request)])
         op: EventOperator = lambda agen: agen.__anext__()
         event: Event = PopEvent(None)
 
@@ -27,11 +27,11 @@ class Intent(ToUsecaseAdapter[IntentReq, IntentRes], FrameworkResponseBoundary[U
 
         return cast(PopEvent, event).value
 
-    async def response(self, res: UsecaseRes) -> PopEvent:
-        return PopEvent(res)
+    async def response(self, response: UsecaseRes) -> PopEvent:
+        return PopEvent(response)
 
     @abstractmethod
-    async def executed(self, req: Any) -> EventAGen:
+    async def executed(self, request: Any) -> EventAGen:
         yield PopEvent(None)
 
 

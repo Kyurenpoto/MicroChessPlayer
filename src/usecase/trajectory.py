@@ -4,7 +4,7 @@
 
 from httpx import HTTPStatusError, RequestError
 from src.core.event import EventAGen
-from src.core.usecase import Usecase, UsecaseData
+from src.core.usecase import Usecase
 from src.entity.movement import FEN, SAN, Movement
 from src.entity.status import Status
 from src.entity.trace import ColoredTrace, FiniteTraceProducable, ProducableTrace, Trace
@@ -16,15 +16,10 @@ from src.model.responsemodel import (
     TrajectoryResponseModel,
 )
 
-
-class TrajectoryUsecase(UsecaseData, Usecase[TrajectoryRequestModel, TrajectoryResponseModel]):
-    pass
+TrajectoryUsecase = Usecase[TrajectoryRequestModel, TrajectoryResponsableModel]
 
 
 class Trajectory(TrajectoryUsecase):
-    async def executed(self, request: TrajectoryRequestModel) -> EventAGen:
-        yield await self.framework().response(await self.request_to_responsable(request))
-
     async def request_to_responsable(self, request: TrajectoryRequestModel) -> TrajectoryResponsableModel:
         try:
             return TrajectoryResponseModel._make(

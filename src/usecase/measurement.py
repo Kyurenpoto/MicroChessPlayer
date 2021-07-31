@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from httpx import HTTPStatusError, RequestError
 from src.core.event import EventAGen
-from src.core.usecase import Usecase, UsecaseData
+from src.core.usecase import Usecase
 from src.entity.enumerable import Mappable
 from src.entity.movement import FEN, Movement
 from src.entity.score import Score
@@ -55,14 +55,10 @@ class Statistics(dict[Score, int]):
         return MeasurementResponseModel(self.white(), self.black())
 
 
-class MeasurementUsecase(UsecaseData, Usecase[MeasurementRequestModel, MeasurementResponseModel]):
-    pass
+MeasurementUsecase = Usecase[MeasurementRequestModel, MeasurementResponsableModel]
 
 
 class Measurement(MeasurementUsecase):
-    async def executed(self, request: MeasurementRequestModel) -> EventAGen:
-        yield await self.framework().response(await self.request_to_responsable(request))
-
     async def request_to_responsable(self, request: MeasurementRequestModel) -> MeasurementResponsableModel:
         try:
             return Statistics.from_traces(
