@@ -13,3 +13,9 @@ class ToUsecaseAdapter(ABC, Generic[ReqType, ResType]):
     @abstractmethod
     async def dispatch(self, req: ReqType) -> ResType:
         pass
+
+
+class APIProxyAdapter(ABC, Generic[ReqType, ResType]):
+    @abstractmethod
+    async def fetch(self, req: ReqType) -> ResType:
+        pass
