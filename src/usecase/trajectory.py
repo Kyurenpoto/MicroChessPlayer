@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: MIT
 
 from httpx import HTTPStatusError, RequestError
-from src.core.event import EventAGen
 from src.core.usecase import Usecase
 from src.entity.movement import FEN, SAN, Movement
 from src.entity.status import Status
@@ -46,20 +45,18 @@ class Trajectory(TrajectoryUsecase):
 
 
 class FakeTrajectory(TrajectoryUsecase):
-    async def executed(self, request: TrajectoryRequestModel) -> EventAGen:
-        yield await self.framework().response(
-            TrajectoryResponseModel._make(
-                ColoredTrace(
-                    Trace(
-                        [[FEN.starting(), FEN.starting()], [FEN.starting(), FEN.starting()]],
-                        [[SAN.first()], [SAN.first()]],
-                        [[0, 0], [0, 0]],
-                    ),
-                    Trace(
-                        [[FEN.first(), FEN.first()], [FEN.first(), FEN.first()]],
-                        [[SAN.first()], [SAN.first()]],
-                        [[0, 0], [0, 0]],
-                    ),
-                ).concatenated()
-            )
+    async def request_to_responsable(self, request: TrajectoryRequestModel) -> TrajectoryResponsableModel:
+        return TrajectoryResponseModel._make(
+            ColoredTrace(
+                Trace(
+                    [[FEN.starting(), FEN.starting()], [FEN.starting(), FEN.starting()]],
+                    [[SAN.first()], [SAN.first()]],
+                    [[0, 0], [0, 0]],
+                ),
+                Trace(
+                    [[FEN.first(), FEN.first()], [FEN.first(), FEN.first()]],
+                    [[SAN.first()], [SAN.first()]],
+                    [[0, 0], [0, 0]],
+                ),
+            ).concatenated()
         )

@@ -5,7 +5,6 @@
 from __future__ import annotations
 
 from httpx import HTTPStatusError, RequestError
-from src.core.event import EventAGen
 from src.core.usecase import Usecase
 from src.entity.movement import FEN, Movement
 from src.entity.score import Score
@@ -53,5 +52,5 @@ class Game(GameUsecase):
 
 
 class FakeGame(GameUsecase):
-    async def executed(self, request: GameRequestModel) -> EventAGen:
-        yield await self.framework().response(GameResponseModel([FEN.starting()], [], "1-0"))
+    async def request_to_responsable(self, request: GameRequestModel) -> GameResponsableModel:
+        return GameResponseModel([FEN.starting()], [], "1-0")

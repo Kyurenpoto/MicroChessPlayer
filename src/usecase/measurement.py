@@ -5,7 +5,6 @@
 from __future__ import annotations
 
 from httpx import HTTPStatusError, RequestError
-from src.core.event import EventAGen
 from src.core.usecase import Usecase
 from src.entity.enumerable import Mappable
 from src.entity.movement import FEN, Movement
@@ -83,7 +82,5 @@ class Measurement(MeasurementUsecase):
 
 
 class FakeMeasurement(MeasurementUsecase):
-    async def executed(self, request: MeasurementRequestModel) -> EventAGen:
-        yield await self.framework().response(
-            MeasurementResponseModel(MeasurementInfo(1.5, 1, 1, 1), MeasurementInfo(1.5, 1, 1, 1))
-        )
+    async def request_to_responsable(self, request: MeasurementRequestModel) -> MeasurementResponsableModel:
+        return MeasurementResponseModel(MeasurementInfo(1.5, 1, 1, 1), MeasurementInfo(1.5, 1, 1, 1))
