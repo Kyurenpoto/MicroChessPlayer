@@ -62,38 +62,55 @@ class MeasurementUsecase(Usecase[MeasurementRequestModel, MeasurementResponsable
     def default(cls) -> MeasurementUsecase:
         return cls([], {}, {})
 
-    async def executed(self, request: MeasurementRequestModel) -> EventAGen:
-        yield await self.frameworks[0].response(await self.request_to_responsable(request))
-
-    @abstractmethod
-    async def request_to_responsable(self, request: MeasurementRequestModel) -> MeasurementResponsableModel:
-        pass
-
 
 class Measurement(MeasurementUsecase):
-    async def request_to_responsable(self, request: MeasurementRequestModel) -> MeasurementResponsableModel:
+    async def executed(self, request: MeasurementRequestModel) -> EventAGen:
         try:
-            return Statistics.from_traces(
-                await ProducableTrace(
-                    Status(request.env),
-                    Movement(request.env, request.ai_white),
-                    Movement(request.env, request.ai_black),
-                    InfiniteTraceProducable(),
-                ).produced([FEN.starting()] * request.playtime)
-            ).to_response()
+            yield await self.frameworks[0].response(
+                Statistics.from_traces(
+                    await ProducableTrace(
+                        Status(request.env),
+                        Movement(request.env, request.ai_white),
+                        Movement(request.env, request.ai_black),
+                        InfiniteTraceProducable(),
+                    ).produced([FEN.starting()] * request.playtime)
+                ).to_response()
+            )
         except RequestError as ex:
-            return RequestErrorResponseModel(
-                f"An error occurred while requesting {ex.request.url!r}: {ex.args[0]!r}",
-                "request.RequestError",
+            yield await self.frameworks[0].response(
+                RequestErrorResponseModel(
+                    f"An error occurred while requesting {ex.request.url!r}: {ex.args[0]!r}",
+                    "request.RequestError",
+                )
             )
         except HTTPStatusError as ex:
-            return HTTPStatusErrorResponseModel(
-                f"Error response {ex.response.status_code} "
-                + f"while requesting {ex.request.url!r}: {ex.response.json()!r}",
-                "request.HTTPStatusError",
+            yield await self.frameworks[0].response(
+                HTTPStatusErrorResponseModel(
+                    f"Error response {ex.response.status_code} "
+                    + f"while requesting {ex.request.url!r}: {ex.response.json()!r}",
+                    "request.HTTPStatusError",
+                )
             )
 
 
 class FakeMeasurement(MeasurementUsecase):
-    async def request_to_responsable(self, request: MeasurementRequestModel) -> MeasurementResponsableModel:
-        return MeasurementResponseModel(MeasurementInfo(1.5, 1, 1, 1), MeasurementInfo(1.5, 1, 1, 1))
+    async def executed(self, request: MeasurementRequestModel) -> EventAGen:
+        try:
+            yield await self.frameworks[0].response(
+                MeasurementResponseModel(MeasurementInfo(1.5, 1, 1, 1), MeasurementInfo(1.5, 1, 1, 1))
+            )
+        except RequestError as ex:
+            yield await self.frameworks[0].response(
+                RequestErrorResponseModel(
+                    f"An error occurred while requesting {ex.request.url!r}: {ex.args[0]!r}",
+                    "request.RequestError",
+                )
+            )
+        except HTTPStatusError as ex:
+            yield await self.frameworks[0].response(
+                HTTPStatusErrorResponseModel(
+                    f"Error response {ex.response.status_code} "
+                    + f"while requesting {ex.request.url!r}: {ex.response.json()!r}",
+                    "request.HTTPStatusError",
+                )
+            )

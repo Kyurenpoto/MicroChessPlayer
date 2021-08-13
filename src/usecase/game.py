@@ -32,38 +32,53 @@ class GameUsecase(Usecase[GameRequestModel, GameResponsableModel]):
     def default(cls) -> GameUsecase:
         return cls([], {}, {})
 
-    async def executed(self, request: GameRequestModel) -> EventAGen:
-        yield await self.frameworks[0].response(await self.request_to_responsable(request))
-
-    @abstractmethod
-    async def request_to_responsable(self, request: GameRequestModel) -> GameResponsableModel:
-        pass
-
 
 class Game(GameUsecase):
-    async def request_to_responsable(self, request: GameRequestModel) -> GameResponsableModel:
+    async def executed(self, request: GameRequestModel) -> EventAGen:
         try:
-            return ResultTrace._make(
-                await ProducableTrace(
-                    Status(request.env),
-                    Movement(request.env, request.ai_white),
-                    Movement(request.env, request.ai_black),
-                    InfiniteTraceProducable(),
-                ).produced([FEN.starting()])
-            ).to_response()
+            yield await self.frameworks[0].response(
+                ResultTrace._make(
+                    await ProducableTrace(
+                        Status(request.env),
+                        Movement(request.env, request.ai_white),
+                        Movement(request.env, request.ai_black),
+                        InfiniteTraceProducable(),
+                    ).produced([FEN.starting()])
+                ).to_response()
+            )
         except RequestError as ex:
-            return RequestErrorResponseModel(
-                f"An error occurred while requesting {ex.request.url!r}: {ex.args[0]!r}",
-                "request.RequestError",
+            yield await self.frameworks[0].response(
+                RequestErrorResponseModel(
+                    f"An error occurred while requesting {ex.request.url!r}: {ex.args[0]!r}",
+                    "request.RequestError",
+                )
             )
         except HTTPStatusError as ex:
-            return HTTPStatusErrorResponseModel(
-                f"Error response {ex.response.status_code} "
-                + f"while requesting {ex.request.url!r}: {ex.response.json()!r}",
-                "request.HTTPStatusError",
+            yield await self.frameworks[0].response(
+                HTTPStatusErrorResponseModel(
+                    f"Error response {ex.response.status_code} "
+                    + f"while requesting {ex.request.url!r}: {ex.response.json()!r}",
+                    "request.HTTPStatusError",
+                )
             )
 
 
 class FakeGame(GameUsecase):
-    async def request_to_responsable(self, request: GameRequestModel) -> GameResponsableModel:
-        return GameResponseModel([FEN.starting()], [], "1-0")
+    async def executed(self, request: GameRequestModel) -> EventAGen:
+        try:
+            yield await self.frameworks[0].response(GameResponseModel([FEN.starting()], [], "1-0"))
+        except RequestError as ex:
+            yield await self.frameworks[0].response(
+                RequestErrorResponseModel(
+                    f"An error occurred while requesting {ex.request.url!r}: {ex.args[0]!r}",
+                    "request.RequestError",
+                )
+            )
+        except HTTPStatusError as ex:
+            yield await self.frameworks[0].response(
+                HTTPStatusErrorResponseModel(
+                    f"Error response {ex.response.status_code} "
+                    + f"while requesting {ex.request.url!r}: {ex.response.json()!r}",
+                    "request.HTTPStatusError",
+                )
+            )
