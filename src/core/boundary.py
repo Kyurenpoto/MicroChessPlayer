@@ -2,8 +2,10 @@
 
 # SPDX-License-Identifier: MIT
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar
 
 from src.core.event import PopEvent, PushEvent
 
@@ -23,9 +25,13 @@ class ResponseBoundary(ABC, Generic[ReqType, ResType]):
         pass
 
 
+class MultipleResponseBoundary(ResponseBoundary[Any, Any]):
+    pass
+
+
 FrameworkRequestBoundary = RequestBoundary
 FrameworkResponseBoundary = ResponseBoundary
 DataStoreRequestBoundary = RequestBoundary
-DataStoreResponseBoundary = ResponseBoundary
+MultipleDataStoreResponseBoundary = MultipleResponseBoundary
 ProxyRequestBoundary = RequestBoundary
-ProxyResponseBoundary = ResponseBoundary
+MultipleProxyResponseBoundary = MultipleResponseBoundary

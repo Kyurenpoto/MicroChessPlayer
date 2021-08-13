@@ -27,8 +27,8 @@ class Intent(ToUsecaseAdapter[IntentReq, IntentRes], FrameworkResponseBoundary[U
 
         return cast(PopEvent, event).value
 
-    async def response(self, response: UsecaseRes) -> PopEvent:
-        return PopEvent(response)
+    async def response(self, res: UsecaseRes) -> PopEvent:
+        return PopEvent(res)
 
     @abstractmethod
     async def executed(self, request: Any) -> EventAGen:
