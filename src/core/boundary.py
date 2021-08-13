@@ -27,3 +27,5 @@ FrameworkRequestBoundary = RequestBoundary
 FrameworkResponseBoundary = ResponseBoundary
 DataStoreRequestBoundary = RequestBoundary
 DataStoreResponseBoundary = ResponseBoundary
+ProxyRequestBoundary = RequestBoundary
+ProxyResponseBoundary = ResponseBoundary

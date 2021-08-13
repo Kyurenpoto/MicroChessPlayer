@@ -4,7 +4,10 @@
 
 from __future__ import annotations
 
+from abc import abstractmethod
+
 from httpx import HTTPStatusError, RequestError
+from src.core.event import EventAGen
 from src.core.usecase import Usecase
 from src.entity.movement import FEN, Movement
 from src.entity.score import Score
@@ -24,7 +27,17 @@ class ResultTrace(Trace):
         return GameResponseModel(self.fens[0], self.sans[0], Score.from_results(self.results[0]))
 
 
-GameUsecase = Usecase[GameRequestModel, GameResponsableModel]
+class GameUsecase(Usecase[GameRequestModel, GameResponsableModel]):
+    @classmethod
+    def default(cls) -> GameUsecase:
+        return cls([], {}, {})
+
+    async def executed(self, request: GameRequestModel) -> EventAGen:
+        yield await self.frameworks[0].response(await self.request_to_responsable(request))
+
+    @abstractmethod
+    async def request_to_responsable(self, request: GameRequestModel) -> GameResponsableModel:
+        pass
 
 
 class Game(GameUsecase):

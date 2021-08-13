@@ -26,7 +26,7 @@ async def test_trajectory_player(container: Container) -> None:
     container.api_info.override(providers.Factory(PlayerAPIInfo, name="trajectory", method="post"))
 
     assert (
-        await TrajectoryPlayer.from_usecase(FakeTrajectory({})).intent.dispatch(
+        await TrajectoryPlayer.from_usecase(FakeTrajectory.default()).intent.dispatch(
             PlayerTrajectoryRequest(
                 fens=[FEN.starting(), FEN.first()],
                 white=PlayerAIInfo(url="http://test"),
@@ -45,7 +45,7 @@ async def test_game_intent(container: Container) -> None:
     container.api_info.override(providers.Factory(PlayerAPIInfo, name="game", method="post"))
 
     assert (
-        await GamePlayer.from_usecase(FakeGame({})).intent.dispatch(
+        await GamePlayer.from_usecase(FakeGame.default()).intent.dispatch(
             PlayerGameRequest(white=PlayerAIInfo(url="http://test"), black=PlayerAIInfo(url="http://test"))
         )
         == GameResponseToDTO([FEN.starting()], [], "1-0").convert()
@@ -57,7 +57,7 @@ async def test_measurement_intent(container: Container) -> None:
     container.api_info.override(providers.Factory(PlayerAPIInfo, name="measurement", method="post"))
 
     assert (
-        await MeasurementPlayer.from_usecase(FakeMeasurement({})).intent.dispatch(
+        await MeasurementPlayer.from_usecase(FakeMeasurement.default()).intent.dispatch(
             PlayerMeasurementRequest(
                 white=PlayerAIInfo(url="http://test"), black=PlayerAIInfo(url="http://test"), playtime=3
             )

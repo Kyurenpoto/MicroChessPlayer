@@ -36,7 +36,7 @@ class TrajectoryPlayer(NamedTuple):
     @classmethod
     def from_usecase(cls, usecase: TrajectoryUsecase) -> TrajectoryPlayer:
         intent = TrajectoryIntent(usecase)
-        usecase.boundaries["framework"] = intent
+        usecase.register_framework(intent)
 
         return TrajectoryPlayer(intent, usecase)
 
@@ -48,7 +48,7 @@ class GamePlayer(NamedTuple):
     @classmethod
     def from_usecase(cls, usecase: GameUsecase) -> GamePlayer:
         intent = GameIntent(usecase)
-        usecase.boundaries["framework"] = intent
+        usecase.register_framework(intent)
 
         return GamePlayer(intent, usecase)
 
@@ -60,7 +60,7 @@ class MeasurementPlayer(NamedTuple):
     @classmethod
     def from_usecase(cls, usecase: MeasurementUsecase) -> MeasurementPlayer:
         intent = MeasurementIntent(usecase)
-        usecase.boundaries["framework"] = intent
+        usecase.register_framework(intent)
 
         return MeasurementPlayer(intent, usecase)
 
@@ -91,17 +91,17 @@ class Player(NamedTuple):
         container.api_info.override(providers.Factory(PlayerAPIInfo, name="trajectory", method="post"))
 
         return self.response_converter.convert(
-            await TrajectoryPlayer.from_usecase(Trajectory({})).intent.dispatch(request)
+            await TrajectoryPlayer.from_usecase(Trajectory.default()).intent.dispatch(request)
         )
 
     async def game(self, request: PlayerGameRequest) -> HALJSONResponse:
         container.api_info.override(providers.Factory(PlayerAPIInfo, name="game", method="post"))
 
-        return self.response_converter.convert(await GamePlayer.from_usecase(Game({})).intent.dispatch(request))
+        return self.response_converter.convert(await GamePlayer.from_usecase(Game.default()).intent.dispatch(request))
 
     async def measurement(self, request: PlayerMeasurementRequest) -> HALJSONResponse:
         container.api_info.override(providers.Factory(PlayerAPIInfo, name="measurement", method="post"))
 
         return self.response_converter.convert(
-            await MeasurementPlayer.from_usecase(Measurement({})).intent.dispatch(request)
+            await MeasurementPlayer.from_usecase(Measurement.default()).intent.dispatch(request)
         )

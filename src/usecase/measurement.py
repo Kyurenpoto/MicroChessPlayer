@@ -4,7 +4,10 @@
 
 from __future__ import annotations
 
+from abc import abstractmethod
+
 from httpx import HTTPStatusError, RequestError
+from src.core.event import EventAGen
 from src.core.usecase import Usecase
 from src.entity.enumerable import Mappable
 from src.entity.movement import FEN, Movement
@@ -54,7 +57,17 @@ class Statistics(dict[Score, int]):
         return MeasurementResponseModel(self.white(), self.black())
 
 
-MeasurementUsecase = Usecase[MeasurementRequestModel, MeasurementResponsableModel]
+class MeasurementUsecase(Usecase[MeasurementRequestModel, MeasurementResponsableModel]):
+    @classmethod
+    def default(cls) -> MeasurementUsecase:
+        return cls([], {}, {})
+
+    async def executed(self, request: MeasurementRequestModel) -> EventAGen:
+        yield await self.frameworks[0].response(await self.request_to_responsable(request))
+
+    @abstractmethod
+    async def request_to_responsable(self, request: MeasurementRequestModel) -> MeasurementResponsableModel:
+        pass
 
 
 class Measurement(MeasurementUsecase):

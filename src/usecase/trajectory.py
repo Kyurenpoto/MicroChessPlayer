@@ -2,7 +2,12 @@
 
 # SPDX-License-Identifier: MIT
 
+from __future__ import annotations
+
+from abc import abstractmethod
+
 from httpx import HTTPStatusError, RequestError
+from src.core.event import EventAGen
 from src.core.usecase import Usecase
 from src.entity.movement import FEN, SAN, Movement
 from src.entity.status import Status
@@ -15,7 +20,18 @@ from src.model.responsemodel import (
     TrajectoryResponseModel,
 )
 
-TrajectoryUsecase = Usecase[TrajectoryRequestModel, TrajectoryResponsableModel]
+
+class TrajectoryUsecase(Usecase[TrajectoryRequestModel, TrajectoryResponsableModel]):
+    @classmethod
+    def default(cls) -> TrajectoryUsecase:
+        return cls([], {}, {})
+
+    async def executed(self, request: TrajectoryRequestModel) -> EventAGen:
+        yield await self.frameworks[0].response(await self.request_to_responsable(request))
+
+    @abstractmethod
+    async def request_to_responsable(self, request: TrajectoryRequestModel) -> TrajectoryResponsableModel:
+        pass
 
 
 class Trajectory(TrajectoryUsecase):
