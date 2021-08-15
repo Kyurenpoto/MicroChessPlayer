@@ -9,7 +9,7 @@ ReqType = TypeVar("ReqType")
 ResType = TypeVar("ResType")
 
 
-class ToUsecaseAdapter(ABC, Generic[ReqType, ResType]):
+class DispatchableIntentAdapter(ABC, Generic[ReqType, ResType]):
     @abstractmethod
     async def dispatch(self, req: ReqType) -> ResType:
         pass
