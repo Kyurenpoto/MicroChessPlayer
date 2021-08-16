@@ -9,11 +9,11 @@ from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from src.core.adapter import APIProxyAdapter
 from src.core.boundary import MultipleProxyResponseBoundary, ProxyRequestBoundary
-from src.core.event import EventAGen, PushEvent
+from src.core.event import EventAGen, PopEvent, PushEvent
 from src.infra.postclient import PostClient
 
-ProxyReq = TypeVar("ProxyReq", bound=BaseModel)
-ProxyRes = TypeVar("ProxyRes", bound=BaseModel)
+ProxyReq = TypeVar("ProxyReq")
+ProxyRes = TypeVar("ProxyRes")
 
 
 class APIProxyData(NamedTuple):
@@ -21,16 +21,21 @@ class APIProxyData(NamedTuple):
     usecase: MultipleProxyResponseBoundary
 
 
-class PostAPIProxy(APIProxyData, APIProxyAdapter[ProxyReq, ProxyRes], ProxyRequestBoundary[ProxyReq, ProxyRes]):
-    async def fetch(self, request: ProxyReq) -> ProxyRes:
+PostAPIReq = TypeVar("PostAPIReq", bound=BaseModel)
+PostAPIRes = TypeVar("PostAPIRes", bound=BaseModel)
+
+
+class PostAPIProxy(APIProxyData, APIProxyAdapter[PostAPIReq, PostAPIRes], ProxyRequestBoundary[ProxyReq, ProxyRes]):
+    async def fetch(self, request: PostAPIReq) -> PostAPIRes:
         return await self.jsondict_to_response(await PostClient(self.url).post(jsonable_encoder(request)))
 
     @abstractmethod
-    async def jsondict_to_response(self, jsondict: dict[str, Any]) -> ProxyRes:
+    async def jsondict_to_response(self, jsondict: dict[str, Any]) -> PostAPIRes:
         pass
 
     async def request(self, request: ProxyReq) -> PushEvent:
         return PushEvent(self.executed(request))
 
+    @abstractmethod
     async def executed(self, request: ProxyReq) -> EventAGen:
-        yield await self.usecase.response(await self.fetch(request))
+        yield PopEvent(None)
