@@ -2,8 +2,6 @@
 
 # SPDX-License-Identifier: GPL-3.0-only
 
-from typing import Union
-
 from pydantic import BaseModel
 from submodules.fastapi_haljson.src.halmodel import HALBase
 
@@ -24,11 +22,3 @@ class EnvironmentFENStatusRequest(BaseModel):
 class EnvironmentFENStatusResponse(HALBase):
     statuses: list[int]
     legal_moves: list[list[str]]
-
-
-class EnvironmentErrorResponse(HALBase):
-    message: str
-    location: str
-    param: str
-    value: Union[list[str], list[list[str]]]
-    error: str

@@ -8,15 +8,8 @@ from submodules.fastapi_haljson.src.halmodel import HALBase
 
 class AINextSANRequest(BaseModel):
     fens: list[str]
+    legal_sans: list[list[str]]
 
 
 class AINextSANResponse(HALBase):
     next_sans: list[str]
-
-
-class AIErrorResponse(HALBase):
-    message: str
-    location: str
-    param: str
-    value: list[str]
-    error: str
