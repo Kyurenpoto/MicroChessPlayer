@@ -4,9 +4,7 @@
 
 from typing import NamedTuple
 
-
-class URLString(str):
-    pass
+from src.model.submodel import ApplicationStateMap, ExtendPolicy, URLString
 
 
 class TrajectoryRequestModel(NamedTuple):
