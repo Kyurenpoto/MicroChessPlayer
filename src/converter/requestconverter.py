@@ -6,6 +6,8 @@ from __future__ import annotations
 
 from dependency_injector.wiring import Provide, inject
 from src.config import Container
+from src.framework.dto.aidto import AINextSANRequest
+from src.framework.dto.environmentdto import EnvironmentFENStatusRequest, EnvironmentNextFENRequest
 from src.framework.dto.playerdto import (
     PlayerGameRequest,
     PlayerInternal,
@@ -13,8 +15,11 @@ from src.framework.dto.playerdto import (
     PlayerTrajectoryRequest,
 )
 from src.model.requestmodel import (
+    FENStatusRequestModel,
     GameRequestModel,
     MeasurementRequestModel,
+    NextFENRequestModel,
+    NextSANRequestModel,
     TrajectoryRequestModel,
     URLString,
 )
@@ -52,3 +57,30 @@ class MeasurementRequestToModel(PlayerMeasurementRequest):
         return MeasurementRequestModel(
             URLString(internal.url_env), URLString(self.white.url), URLString(self.black.url), self.playtime
         )
+
+
+class NextFENRequestToDTO(NextFENRequestModel):
+    @classmethod
+    def from_model(cls, model: NextFENRequestModel) -> NextFENRequestToDTO:
+        return NextFENRequestToDTO._make(model)
+
+    def convert(self) -> EnvironmentNextFENRequest:
+        return EnvironmentNextFENRequest(fens=self.fens, sans=self.sans)
+
+
+class NextSANRequestToDTO(NextSANRequestModel):
+    @classmethod
+    def from_model(cls, model: NextSANRequestModel) -> NextSANRequestToDTO:
+        return NextSANRequestToDTO._make(model)
+
+    def convert(self) -> AINextSANRequest:
+        return AINextSANRequest(fens=self.fens)
+
+
+class FENStatusRequestToDTO(FENStatusRequestModel):
+    @classmethod
+    def from_model(cls, model: FENStatusRequestModel) -> FENStatusRequestToDTO:
+        return FENStatusRequestToDTO._make(model)
+
+    def convert(self) -> EnvironmentFENStatusRequest:
+        return EnvironmentFENStatusRequest(fens=self.fens)
