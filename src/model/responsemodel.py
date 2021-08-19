@@ -55,8 +55,8 @@ class RequestErrorResponseModel(ErrorResponseModel):
         return RequestErrorResponseModel(message, "request.RequestError")
 
     @classmethod
-    def from_message_with_service(cls, message: str, service: str) -> BadRequestResponseModel:
-        return BadRequestResponseModel(message, f"{service}.RequestError")
+    def from_message_with_service(cls, message: str, service: str) -> RequestErrorResponseModel:
+        return RequestErrorResponseModel(message, f"{service}.RequestError")
 
 
 class HTTPStatusErrorResponseModel(ErrorResponseModel):
@@ -70,11 +70,17 @@ class BadRequestResponseModel(ErrorResponseModel):
     def from_message_with_service(cls, message: str, service: str) -> BadRequestResponseModel:
         return BadRequestResponseModel(message, f"{service}.BadRequest")
 
+    def status_code(self) -> int:
+        return status.HTTP_400_BAD_REQUEST
+
 
 class PayloadTooLargeResponseModel(ErrorResponseModel):
     @classmethod
     def from_message_with_service(cls, message: str, service: str) -> PayloadTooLargeResponseModel:
         return PayloadTooLargeResponseModel(message, f"{service}.PayloadTooLarge")
+
+    def status_code(self) -> int:
+        return status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
 
 
 class UnsupportedMediaTypeResponseModel(ErrorResponseModel):
@@ -82,11 +88,17 @@ class UnsupportedMediaTypeResponseModel(ErrorResponseModel):
     def from_message_with_service(cls, message: str, service: str) -> UnsupportedMediaTypeResponseModel:
         return UnsupportedMediaTypeResponseModel(message, f"{service}.UnsupportedMediaType")
 
+    def status_code(self) -> int:
+        return status.HTTP_415_UNSUPPORTED_MEDIA_TYPE
+
 
 class UnprocessableEntityResponseModel(ErrorResponseModel):
     @classmethod
     def from_message_with_service(cls, message: str, service: str) -> UnprocessableEntityResponseModel:
         return UnprocessableEntityResponseModel(message, f"{service}.UnprocessableEntity")
+
+    def status_code(self) -> int:
+        return status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
 class InternalServerErrorResponseModel(ErrorResponseModel):
@@ -94,11 +106,17 @@ class InternalServerErrorResponseModel(ErrorResponseModel):
     def from_message_with_service(cls, message: str, service: str) -> InternalServerErrorResponseModel:
         return InternalServerErrorResponseModel(message, f"{service}.InternalServerError")
 
+    def status_code(self) -> int:
+        return status.HTTP_500_INTERNAL_SERVER_ERROR
+
 
 class BadGatewayResponseModel(ErrorResponseModel):
     @classmethod
     def from_message_with_service(cls, message: str, service: str) -> BadGatewayResponseModel:
         return BadGatewayResponseModel(message, f"{service}.BadGateway")
+
+    def status_code(self) -> int:
+        return status.HTTP_502_BAD_GATEWAY
 
 
 ResponseErrorResponseModel = Union[

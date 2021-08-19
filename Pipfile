@@ -8,6 +8,8 @@ fastapi = "*"
 uvicorn = "*"
 httpx = "*"
 dependency-injector = "*"
+faker = "*"
+factory-boy = "*"
 
 [dev-packages]
 pytest = "*"
