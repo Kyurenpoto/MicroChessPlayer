@@ -35,3 +35,8 @@ DataStoreRequestBoundary = RequestBoundary
 MultipleDataStoreResponseBoundary = MultipleResponseBoundary
 ProxyRequestBoundary = RequestBoundary
 MultipleProxyResponseBoundary = MultipleResponseBoundary
+
+
+class FakeMultipleProxyResponseBoundary(MultipleResponseBoundary):
+    async def response(self, res) -> PopEvent:
+        return PopEvent(None)

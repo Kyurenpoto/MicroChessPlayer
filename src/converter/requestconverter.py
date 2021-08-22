@@ -74,7 +74,7 @@ class NextSANRequestToDTO(NextSANRequestModel):
         return NextSANRequestToDTO._make(model)
 
     def convert(self) -> AINextSANRequest:
-        return AINextSANRequest(fens=self.fens)
+        return AINextSANRequest(fens=self.fens, legal_sans=self.legal_sans)
 
 
 class FENStatusRequestToDTO(FENStatusRequestModel):
