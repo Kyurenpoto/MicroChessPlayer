@@ -65,73 +65,33 @@ class HTTPStatusErrorResponseModel(ErrorResponseModel):
         return HTTPStatusErrorResponseModel(message, "request.HTTPStatusError")
 
 
-class BadRequestResponseModel(ErrorResponseModel):
-    @classmethod
-    def from_message_with_service(cls, message: str, service: str) -> BadRequestResponseModel:
-        return BadRequestResponseModel(message, f"{service}.BadRequest")
+class ErrorMessageModel(NamedTuple):
+    description: str
+    request_target: str
+    response_detail: str
 
-    def status_code(self) -> int:
-        return status.HTTP_400_BAD_REQUEST
-
-
-class PayloadTooLargeResponseModel(ErrorResponseModel):
-    @classmethod
-    def from_message_with_service(cls, message: str, service: str) -> PayloadTooLargeResponseModel:
-        return PayloadTooLargeResponseModel(message, f"{service}.PayloadTooLarge")
-
-    def status_code(self) -> int:
-        return status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
+    def __str__(self) -> str:
+        return f"{self.description} while request to [{self.request_target!r}], detail: {self.response_detail!r}"
 
 
-class UnsupportedMediaTypeResponseModel(ErrorResponseModel):
-    @classmethod
-    def from_message_with_service(cls, message: str, service: str) -> UnsupportedMediaTypeResponseModel:
-        return UnsupportedMediaTypeResponseModel(message, f"{service}.UnsupportedMediaType")
+class ErrorTypeModel(NamedTuple):
+    service: str
+    category: str
+    code: int
+    name: str
 
-    def status_code(self) -> int:
-        return status.HTTP_415_UNSUPPORTED_MEDIA_TYPE
-
-
-class UnprocessableEntityResponseModel(ErrorResponseModel):
-    @classmethod
-    def from_message_with_service(cls, message: str, service: str) -> UnprocessableEntityResponseModel:
-        return UnprocessableEntityResponseModel(message, f"{service}.UnprocessableEntity")
-
-    def status_code(self) -> int:
-        return status.HTTP_422_UNPROCESSABLE_ENTITY
+    def __str__(self) -> str:
+        return f"{self.service}.{self.category}.{self.name}({self.code})"
 
 
-class InternalServerErrorResponseModel(ErrorResponseModel):
-    @classmethod
-    def from_message_with_service(cls, message: str, service: str) -> InternalServerErrorResponseModel:
-        return InternalServerErrorResponseModel(message, f"{service}.InternalServerError")
-
-    def status_code(self) -> int:
-        return status.HTTP_500_INTERNAL_SERVER_ERROR
-
-
-class BadGatewayResponseModel(ErrorResponseModel):
-    @classmethod
-    def from_message_with_service(cls, message: str, service: str) -> BadGatewayResponseModel:
-        return BadGatewayResponseModel(message, f"{service}.BadGateway")
-
-    def status_code(self) -> int:
-        return status.HTTP_502_BAD_GATEWAY
-
-
-ResponseErrorResponseModel = Union[
-    BadRequestResponseModel,
-    PayloadTooLargeResponseModel,
-    UnsupportedMediaTypeResponseModel,
-    UnprocessableEntityResponseModel,
-    InternalServerErrorResponseModel,
-    BadGatewayResponseModel,
-]
+class ClearErrorResponseModel(NamedTuple):
+    message: ErrorMessageModel
+    error: ErrorTypeModel
 
 
 TrajectoryResponsableModel = Union[TrajectoryResponseModel, RequestErrorResponseModel, HTTPStatusErrorResponseModel]
 GameResponsableModel = Union[GameResponseModel, RequestErrorResponseModel, HTTPStatusErrorResponseModel]
 MeasurementResponsableModel = Union[MeasurementResponseModel, RequestErrorResponseModel, HTTPStatusErrorResponseModel]
-NextFENResponsableModel = Union[NextFENResponseModel, RequestErrorResponseModel, HTTPStatusErrorResponseModel]
-NextSANResponsableModel = Union[NextSANResponseModel, RequestErrorResponseModel, HTTPStatusErrorResponseModel]
-FENStatusResponsableModel = Union[FENStatusResponseModel, ErrorResponseModel]
+NextFENResponsableModel = Union[NextFENResponseModel, ClearErrorResponseModel]
+NextSANResponsableModel = Union[NextSANResponseModel, ClearErrorResponseModel]
+FENStatusResponsableModel = Union[FENStatusResponseModel, ClearErrorResponseModel]

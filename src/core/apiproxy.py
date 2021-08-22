@@ -3,15 +3,15 @@
 # SPDX-License-Identifier: MIT
 
 from abc import abstractmethod
-from typing import Any, NamedTuple, TypeVar
+from typing import Any, Callable, Coroutine, NamedTuple, TypeVar
 
 from fastapi.encoders import jsonable_encoder
 from httpx import HTTPStatusError, RequestError
 from pydantic import BaseModel
-from src.converter.responseconverter import ConvertedHTTPStatusErrorResponseModel, ConvertedRequestErrorResponseModel
+from src.converter.responseconverter import ConvertedRequestErrorResponseModel, ConvertedResponseErrorResponseModel
 from src.core.adapter import APIProxyAdapter
 from src.core.boundary import MultipleProxyResponseBoundary, ProxyRequestBoundary
-from src.core.event import EventAGen, PopEvent, PushEvent
+from src.core.event import EventAGen, PushEvent
 from src.infra.postclient import PostClient
 
 ProxyReq = TypeVar("ProxyReq")
@@ -47,15 +47,15 @@ class PostAPIProxy(APIProxyData, APIProxyAdapter[PostAPIReq, PostAPIRes], ProxyR
 
 
 def post_api_proxy_handle_exception(service_name: str):
-    def handle_exception_with_service_name(request_to_response):
+    def handle_exception_with_service_name(request_to_response: Callable[..., Coroutine[Any, Any, Any]]):
         async def handle_exception(*args, **kwargs):
             try:
-                return request_to_response(*args, **kwargs)
+                return await request_to_response(*args, **kwargs)
             except RequestError as ex:
-                return ConvertedRequestErrorResponseModel(ex.request.url, ex.args[0], service_name).convert()
+                return ConvertedRequestErrorResponseModel(service_name, ex.request.url, type(ex).__name__).convert()
             except HTTPStatusError as ex:
-                return ConvertedHTTPStatusErrorResponseModel(
-                    ex.response.status_code, ex.request.url, ex.response.json(), service_name
+                return ConvertedResponseErrorResponseModel(
+                    ex.response.status_code, service_name, ex.request.url, ex.response.json()
                 ).convert()
 
         return handle_exception
