@@ -35,7 +35,9 @@ async def target_to_test(request: FENStatusRequestModel = FENStatusRequestModel(
 )
 @pytest.mark.asyncio
 @respx.mock
-async def test_request_to_response(statuses: list[int], legal_moves: list[list[str]]) -> None:
+async def test_given_random_response_when_call_request_to_response_then_return_normal_response(
+    statuses: list[int], legal_moves: list[list[str]]
+) -> None:
     async def target_function(json: dict) -> FENStatusResponsableModel:
         respx.post(FEN_STATUS_URL).mock(side_effect=[Response(status.HTTP_200_OK, json=json)])
 
@@ -58,7 +60,9 @@ async def test_request_to_response(statuses: list[int], legal_moves: list[list[s
 )
 @pytest.mark.asyncio
 @respx.mock
-async def test_request_to_response_with_request_error(error_type: Type[RequestError]) -> None:
+async def test_given_request_exception_when_call_request_to_response_then_return_request_error(
+    error_type: Type[RequestError],
+) -> None:
     async def target_function(error_type: Type[RequestError]) -> FENStatusResponsableModel:
         respx.post(FEN_STATUS_URL).mock(side_effect=[error_type("")])
 
@@ -80,7 +84,9 @@ async def test_request_to_response_with_request_error(error_type: Type[RequestEr
 )
 @pytest.mark.asyncio
 @respx.mock
-async def test_request_to_response_with_error_response(status_code: int) -> None:
+async def test_given_http_error_response_seted_when_call_request_to_response_then_return_response_error(
+    status_code: int,
+) -> None:
     async def target_function(status_code: int) -> FENStatusResponsableModel:
         respx.post(FEN_STATUS_URL).mock(side_effect=[Response(status_code, json={})])
 
