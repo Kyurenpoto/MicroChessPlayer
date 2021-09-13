@@ -15,7 +15,13 @@ UsecaseReq = TypeVar("UsecaseReq")
 UsecaseRes = TypeVar("UsecaseRes")
 
 
-class Intent(DispatchableIntentAdapter[IntentReq, IntentRes], FrameworkResponseBoundary[UsecaseReq, UsecaseRes]):
+class IntentData(NamedTuple):
+    usecase: FrameworkRequestBoundary
+
+
+class Intent(
+    IntentData, DispatchableIntentAdapter[IntentReq, IntentRes], FrameworkResponseBoundary[UsecaseReq, UsecaseRes]
+):
     async def dispatch(self, request: IntentReq) -> IntentRes:
         callstack: list[EventAGen] = list[EventAGen]([self.executed(request)])
         op: EventOperator = lambda agen: agen.__anext__()
@@ -33,7 +39,3 @@ class Intent(DispatchableIntentAdapter[IntentReq, IntentRes], FrameworkResponseB
     @abstractmethod
     async def executed(self, request: Any) -> EventAGen:
         yield PopEvent(None)
-
-
-class IntentData(NamedTuple):
-    usecase: FrameworkRequestBoundary

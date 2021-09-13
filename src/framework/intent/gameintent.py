@@ -50,7 +50,7 @@ class GameResponsableToDTO(NamedTuple):
         return self.converters[type(model).__name__](model).convert()
 
 
-class GameIntent(IntentData, Intent[PlayerGameRequest, ResponseType, GameRequestModel, GameResponsableModel]):
+class GameIntent(Intent[PlayerGameRequest, ResponseType, GameRequestModel, GameResponsableModel]):
     async def executed(self, request: PlayerGameRequest) -> EventAGen:
         yield PopEvent(
             GameResponsableToDTO.from_request_dto(request).convert(

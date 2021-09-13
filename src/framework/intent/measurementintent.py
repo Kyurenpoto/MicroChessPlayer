@@ -55,7 +55,7 @@ class MeasurementResponsableToDTO(NamedTuple):
 
 
 class MeasurementIntent(
-    IntentData, Intent[PlayerMeasurementRequest, ResponseType, MeasurementRequestModel, MeasurementResponsableModel]
+    Intent[PlayerMeasurementRequest, ResponseType, MeasurementRequestModel, MeasurementResponsableModel]
 ):
     async def executed(self, request: PlayerMeasurementRequest) -> EventAGen:
         yield PopEvent(

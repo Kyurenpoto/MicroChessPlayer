@@ -55,8 +55,7 @@ class TrajectoryResponsableToDTO(NamedTuple):
 
 
 class TrajectoryIntent(
-    IntentData,
-    Intent[PlayerTrajectoryRequest, ResponseType, TrajectoryRequestModel, TrajectoryResponsableModel],
+    Intent[PlayerTrajectoryRequest, ResponseType, TrajectoryRequestModel, TrajectoryResponsableModel]
 ):
     async def executed(self, request: PlayerTrajectoryRequest) -> EventAGen:
         yield PopEvent(
