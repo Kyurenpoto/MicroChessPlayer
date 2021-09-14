@@ -39,3 +39,8 @@ class Intent(
     @abstractmethod
     async def executed(self, request: Any) -> EventAGen:
         yield PopEvent(None)
+
+
+class FakeIntent(Intent[UsecaseReq, UsecaseRes, UsecaseReq, UsecaseRes]):
+    async def executed(self, request: UsecaseReq) -> EventAGen:
+        yield PopEvent((yield await self.usecase.request(request)))
