@@ -58,17 +58,17 @@ class ResponseErrorBlackBox(ErrorBlackBox[int, ResModel]):
         return await self.target_to_test.target(Response(status_code, json={}))
 
 
-class APIProxyTestConfig(ABC):
+class APIProxyTestable(ABC):
     @abstractmethod
     def target_to_test(self) -> TargetToTest:
         pass
 
-    @abstractmethod
-    def service_name(self) -> str:
-        pass
+
+class NormalTestable(Generic[ResModel], APIProxyTestable):
+    pass
 
 
-class ErrorTestable(Generic[ResModel], APIProxyTestConfig):
+class ErrorTestable(Generic[ResModel], APIProxyTestable):
     @pytest.mark.parametrize(
         "error_type",
         list(NamedHTTPRequestErrorTypeName.type_list()),
@@ -94,3 +94,7 @@ class ErrorTestable(Generic[ResModel], APIProxyTestConfig):
         await ResponseErrorBlackBox[ResModel](
             self.target_to_test(), ResponseErrorTypeModelFactory(self.service_name(), status_code).created()
         ).verify(status_code)
+
+    @abstractmethod
+    def service_name(self) -> str:
+        pass
