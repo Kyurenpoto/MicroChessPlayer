@@ -55,7 +55,7 @@ def post_api_proxy_handle_exception(service_name: str):
                 return ConvertedRequestErrorResponseModel(service_name, ex.request.url, type(ex).__name__).convert()
             except HTTPStatusError as ex:
                 return ConvertedResponseErrorResponseModel(
-                    ex.response.status_code, service_name, ex.request.url, ex.response.json()
+                    service_name, ex.response.status_code, ex.request.url, ex.response.json()
                 ).convert()
 
         return handle_exception

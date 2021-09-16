@@ -189,6 +189,19 @@ class AINextSANResponseToModel(AINextSANResponse):
         return NextSANResponseModel(self.next_sans)
 
 
+class RequestErrorTypeModelFactory(NamedTuple):
+    service: str
+    response_typename: str
+
+    def created(self) -> ErrorTypeModel:
+        return ErrorTypeModel(
+            self.service,
+            "HTTP-Request",
+            0,
+            NamedHTTPRequestErrorTypeName(self.response_typename).name().replace(" ", "-"),
+        )
+
+
 class ConvertedRequestErrorResponseModel(NamedTuple):
     service: str
     request_url: str
@@ -201,18 +214,26 @@ class ConvertedRequestErrorResponseModel(NamedTuple):
                 self.request_url,
                 NamedHTTPRequestErrorTypeName(self.response_typename).name(),
             ),
-            ErrorTypeModel(
-                self.service,
-                "HTTP-Request",
-                0,
-                NamedHTTPRequestErrorTypeName(self.response_typename).name().replace(" ", "-"),
-            ),
+            RequestErrorTypeModelFactory(self.service, self.response_typename).created(),
+        )
+
+
+class ResponseErrorTypeModelFactory(NamedTuple):
+    service: str
+    status_code: int
+
+    def created(self) -> ErrorTypeModel:
+        return ErrorTypeModel(
+            self.service,
+            "HTTP-Response",
+            self.status_code,
+            NamedHTTPStatusCode(self.status_code).name().replace(" ", "-"),
         )
 
 
 class ConvertedResponseErrorResponseModel(NamedTuple):
-    status_code: int
     service: str
+    status_code: int
     request_url: str
     response_json: dict[str, Any]
 
@@ -221,10 +242,5 @@ class ConvertedResponseErrorResponseModel(NamedTuple):
             ErrorMessageModel(
                 NamedHTTPStatusCode(self.status_code).name(), self.request_url, f"{self.response_json!r}"
             ),
-            ErrorTypeModel(
-                self.service,
-                "HTTP-Response",
-                self.status_code,
-                NamedHTTPStatusCode(self.status_code).name().replace(" ", "-"),
-            ),
+            ResponseErrorTypeModelFactory(self.service, self.status_code).created(),
         )

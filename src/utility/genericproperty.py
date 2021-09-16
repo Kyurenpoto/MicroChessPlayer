@@ -3,196 +3,203 @@
 # SPDX-License-Identifier: MIT
 
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Coroutine, NamedTuple
+from typing import Any, Callable, Coroutine, Generic, NamedTuple, TypeVar
 
-
-class Property(NamedTuple):
-    property: Callable[[Any], bool]
-
-    def verify(self, target: Any) -> None:
-        assert self.property(target)
+T1 = TypeVar("T1")
+T2 = TypeVar("T2")
 
 
 class GenericProperty(ABC):
     @abstractmethod
-    def property(self) -> Property:
+    def verify(self, target: Any) -> None:
         pass
 
 
-class SymmetryData(NamedTuple):
-    function: Callable[[Any], Any]
-    inverse: Callable[[Any], Any]
+class Symmetry(GenericProperty, ABC, Generic[T1, T2]):
+    def verify(self, x: Any) -> None:
+        assert x == self.function(self.inverse(x))
+
+    @abstractmethod
+    def function(self, x: T1) -> T2:
+        pass
+
+    @abstractmethod
+    def inverse(self, x: T2) -> T1:
+        pass
 
 
-class Symmetry(SymmetryData, GenericProperty):
-    def property(self) -> Property:
-        return Property(lambda x: x == self.function(self.inverse(x)))
+class Commutativity(GenericProperty, ABC, Generic[T1]):
+    def verify(self, x: Any) -> None:
+        assert self.function1(self.function2(x)) == self.function2(self.function1(x))
+
+    @abstractmethod
+    def function1(self, x: T1) -> T1:
+        pass
+
+    @abstractmethod
+    def function2(self, x: T1) -> T1:
+        pass
 
 
-class CommutativityData(NamedTuple):
-    function1: Callable[[Any], Any]
-    function2: Callable[[Any], Any]
+class Invariant(GenericProperty, ABC, Generic[T1, T2]):
+    def verify(self, x: Any) -> None:
+        assert self.invariant(x) == self.invariant(self.function(x))
+
+    @abstractmethod
+    def function(self, x: T1) -> T1:
+        pass
+
+    @abstractmethod
+    def invariant(self, x: T1) -> T2:
+        pass
 
 
-class Commutativity(CommutativityData, GenericProperty):
-    def property(self) -> Property:
-        return Property(lambda x: self.function1(self.function2(x)) == self.function2(self.function1(x)))
+class Idempotence(GenericProperty, ABC, Generic[T1]):
+    def verify(self, x: Any) -> None:
+        assert self.function(x) == self.function(self.function(x))
+
+    @abstractmethod
+    def function(self, x: T1) -> T1:
+        pass
 
 
-class InvariantData(NamedTuple):
-    function: Callable[[Any], Any]
-    invariant: Callable[[Any], Any]
+class Indunction(GenericProperty, ABC, Generic[T1, T2]):
+    def verify(self, x: Any) -> None:
+        assert self.function(x) == self.function(self.composer([self.function(piece) for piece in self.separator(x)]))
+
+    @abstractmethod
+    def function(self, x: T1) -> T2:
+        pass
+
+    @abstractmethod
+    def separator(self, x: T1) -> list[T1]:
+        pass
+
+    @abstractmethod
+    def composer(self, x: list[T2]) -> T1:
+        pass
 
 
-class Invariant(InvariantData, GenericProperty):
-    def property(self) -> Property:
-        return Property(lambda x: self.invariant(x) == self.invariant(self.function(x)))
+class Blackbox(GenericProperty, ABC, Generic[T1, T2]):
+    def verify(self, x: Any) -> None:
+        assert self.verifier(self.function(x))
+
+    @abstractmethod
+    def function(self, x: T1) -> T2:
+        pass
+
+    @abstractmethod
+    def verifier(self, x: T2) -> bool:
+        pass
 
 
-class IdempotenceData(NamedTuple):
-    function: Callable[[Any], Any]
+class Oracle(GenericProperty, ABC, Generic[T1, T2]):
+    def verify(self, x: Any) -> None:
+        assert self.function1(x) == self.function2(x)
 
+    @abstractmethod
+    def function1(self, x: T1) -> T2:
+        pass
 
-class Idempotence(IdempotenceData, GenericProperty):
-    def property(self) -> Property:
-        return Property(lambda x: self.function(x) == self.function(self.function(x)))
-
-
-class IndunctionData(NamedTuple):
-    function: Callable[[Any], Any]
-    separator: Callable[[Any], list]
-    composer: Callable[[list], Any]
-
-
-class Indunction(IndunctionData, GenericProperty):
-    def property(self) -> Property:
-        return Property(
-            lambda x: self.function(x)
-            == self.function(self.composer([self.function(piece) for piece in self.separator(x)]))
-        )
-
-
-class BlackboxData(NamedTuple):
-    function: Callable[[Any], Any]
-    verifier: Callable[[Any], bool]
-
-
-class Blackbox(BlackboxData, GenericProperty):
-    def property(self) -> Property:
-        return Property(lambda x: self.verifier(self.function(x)))
-
-
-class OracleData(NamedTuple):
-    function1: Callable[[Any], Any]
-    function2: Callable[[Any], Any]
-
-
-class Oracle(OracleData, GenericProperty):
-    def property(self) -> Property:
-        return Property(lambda x: self.function1(x) == self.function2(x))
-
-
-class AsyncProperty(NamedTuple):
-    property: Callable[[Any], Coroutine[Any, Any, bool]]
-
-    async def verify(self, target: Any) -> None:
-        assert await self.property(target)
+    @abstractmethod
+    def function2(self, x: T1) -> T2:
+        pass
 
 
 class AsyncGenericProperty(ABC):
     @abstractmethod
-    async def property(self) -> AsyncProperty:
+    async def verify(self, target: Any) -> None:
         pass
 
 
-class AsyncSymmetryData(NamedTuple):
-    function: Callable[[Any], Coroutine[Any, Any, Any]]
-    inverse: Callable[[Any], Coroutine[Any, Any, Any]]
+class AsyncSymmetry(AsyncGenericProperty, ABC, Generic[T1, T2]):
+    async def verify(self, x: Any) -> None:
+        assert x == await self.function(await self.inverse(x))
+
+    @abstractmethod
+    async def function(self, x: T1) -> T2:
+        pass
+
+    @abstractmethod
+    async def inverse(self, x: T2) -> T1:
+        pass
 
 
-class AsyncSymmetry(AsyncSymmetryData, AsyncGenericProperty):
-    async def property(self) -> AsyncProperty:
-        async def async_lambda(x) -> bool:
-            return x == await self.function(await self.inverse(x))
+class AsyncCommutativity(AsyncGenericProperty, ABC, Generic[T1]):
+    async def verify(self, x: Any) -> None:
+        assert await self.function1(await self.function2(x)) == await self.function2(await self.function1(x))
 
-        return AsyncProperty(async_lambda)
+    @abstractmethod
+    async def function1(self, x: T1) -> T1:
+        pass
 
-
-class AsyncCommutativityData(NamedTuple):
-    function1: Callable[[Any], Coroutine[Any, Any, Any]]
-    function2: Callable[[Any], Coroutine[Any, Any, Any]]
-
-
-class AsyncCommutativity(AsyncCommutativityData, AsyncGenericProperty):
-    def property(self) -> AsyncProperty:
-        async def async_lambda(x) -> bool:
-            return await self.function1(await self.function2(x)) == await self.function2(await self.function1(x))
-
-        return AsyncProperty(async_lambda)
+    @abstractmethod
+    async def function2(self, x: T1) -> T1:
+        pass
 
 
-class AsyncInvariantData(NamedTuple):
-    function: Callable[[Any], Coroutine[Any, Any, Any]]
-    invariant: Callable[[Any], Coroutine[Any, Any, Any]]
+class AsyncInvariant(AsyncGenericProperty, ABC, Generic[T1, T2]):
+    async def verify(self, x: Any) -> None:
+        assert await self.invariant(x) == await self.invariant(await self.function(x))
+
+    @abstractmethod
+    async def function(self, x: T1) -> T1:
+        pass
+
+    @abstractmethod
+    async def invariant(self, x: T1) -> T2:
+        pass
 
 
-class AsyncInvariant(AsyncInvariantData, AsyncGenericProperty):
-    def property(self) -> AsyncProperty:
-        async def async_lambda(x) -> bool:
-            return await self.invariant(x) == await self.invariant(await self.function(x))
+class AsyncIdempotence(AsyncGenericProperty, ABC, Generic[T1]):
+    async def verify(self, x: Any) -> None:
+        assert await self.function(x) == await self.function(await self.function(x))
 
-        return AsyncProperty(async_lambda)
-
-
-class AsyncIdempotenceData(NamedTuple):
-    function: Callable[[Any], Coroutine[Any, Any, Any]]
+    @abstractmethod
+    async def function(self, x: T1) -> T1:
+        pass
 
 
-class AsyncIdempotence(AsyncIdempotenceData, AsyncGenericProperty):
-    def property(self) -> AsyncProperty:
-        async def async_lambda(x) -> bool:
-            return await self.function(x) == await self.function(await self.function(x))
+class AsyncIndunction(AsyncGenericProperty, ABC, Generic[T1, T2]):
+    async def verify(self, x: Any) -> None:
+        assert await self.function(x) == await self.function(
+            await self.composer([await self.function(piece) for piece in await self.separator(x)])
+        )
 
-        return AsyncProperty(async_lambda)
+    @abstractmethod
+    async def function(self, x: T1) -> T2:
+        pass
 
+    @abstractmethod
+    async def separator(self, x: T1) -> list[T1]:
+        pass
 
-class AsyncIndunctionData(NamedTuple):
-    function: Callable[[Any], Coroutine[Any, Any, Any]]
-    separator: Callable[[Any], Coroutine[Any, Any, list]]
-    composer: Callable[[list], Coroutine[Any, Any, Any]]
-
-
-class AsyncIndunction(AsyncIndunctionData, AsyncGenericProperty):
-    def property(self) -> AsyncProperty:
-        async def async_lambda(x) -> bool:
-            return await self.function(x) == await self.function(
-                await self.composer([await self.function(piece) for piece in await self.separator(x)])
-            )
-
-        return AsyncProperty(async_lambda)
+    @abstractmethod
+    async def composer(self, x: list[T2]) -> T1:
+        pass
 
 
-class AsyncBlackboxData(NamedTuple):
-    function: Callable[[Any], Coroutine[Any, Any, Any]]
-    verifier: Callable[[Any], Coroutine[Any, Any, bool]]
+class AsyncBlackbox(AsyncGenericProperty, ABC, Generic[T1, T2]):
+    async def verify(self, x: Any) -> None:
+        assert await self.verifier(await self.function(x))
+
+    @abstractmethod
+    async def function(self, x: T1) -> T2:
+        pass
+
+    @abstractmethod
+    async def verifier(self, x: T2) -> bool:
+        pass
 
 
-class AsyncBlackbox(AsyncBlackboxData, AsyncGenericProperty):
-    def property(self) -> AsyncProperty:
-        async def async_lambda(x) -> bool:
-            return await self.verifier(await self.function(x))
+class AsyncOracle(AsyncGenericProperty, ABC, Generic[T1, T2]):
+    async def verify(self, x: Any) -> None:
+        assert await self.function1(x) == await self.function2(x)
 
-        return AsyncProperty(async_lambda)
+    @abstractmethod
+    async def function1(self, x: T1) -> T2:
+        pass
 
-
-class AsyncOracleData(NamedTuple):
-    function1: Callable[[Any], Coroutine[Any, Any, Any]]
-    function2: Callable[[Any], Coroutine[Any, Any, Any]]
-
-
-class AsyncOracle(AsyncOracleData, AsyncGenericProperty):
-    def property(self) -> AsyncProperty:
-        async def async_lambda(x) -> bool:
-            return await self.function1(x) == await self.function2(x)
-
-        return AsyncProperty(async_lambda)
+    @abstractmethod
+    async def function2(self, x: T1) -> T2:
+        pass
